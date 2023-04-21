@@ -1,0 +1,596 @@
+<!-- 공통 > 생산관리 > 제품별 공정 등록-->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert1('mm/ptitemroute', '제품별공정등록')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+    <dx-button
+      icon="add"
+      id="Open"
+      type="default"
+      [text]="utilService.convert('com_btn_new')"
+      (onClick)="onNew($event)"
+    ></dx-button>
+  </span>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                      lg:3, md: 3, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{value: G_TENANT}">
+          </dxi-item>
+
+          <dxi-item dataField="itemId" [label]="{text: utilService.convert1('sales.item_cd', '품목')}"
+                    editorType="dxSelectBox" [colSpan]="1" [editorOptions]="{
+                                      items: dsItemId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                      }"></dxi-item>
+          <dxi-item dataField="spec"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert1('pt_prod_prog_status.spec', '규격')}"
+                    [editorOptions]="{  items: dsSpec,
+                                      displayExpr: 'spec',
+                                      valueExpr: 'spec',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"></dxi-item>
+          <dxi-item dataField="revision" [label]="{text: utilService.convert1('mm_ptitemroute_revision','revision')}"
+                    [colSpan]="1"></dxi-item>
+
+          <dxi-item dataField="itemAdminId"
+                    [label]="{text: utilService.convert1('mm_ptitemroute_itemAdminId', '품목관리사')}"
+                    editorType="dxSelectBox"
+                    disabled="true"
+                    [editorOptions]="{
+                        items: dsItemAdminId,
+                        displayExpr: 'display',
+                        valueExpr: 'uid',
+                        searchMode: 'contains',
+                        searchEnabled: true,
+                        openOnFieldClick: false,
+                        showClearButton: true,
+                        noDataText: 'No Data',
+                        placeholder: ''
+                    }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   class="reset-btn"
+                   [text]="utilService.convert('com_btn_reset')"
+                   (onClick)="onReset()"
+        ></dx-button>
+        <dx-button icon="check"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300"
+  >
+    <dxi-item [title]="utilService.convert1('mm_ptitemroute_maingrid','제품별공정 리스트')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainDataSource"
+                    [(selectedRowKeys)]="selectedRows"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    (onRowDblClick)="rowDblClick($event)"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [showRowLines]="true"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]="gridUtil.getPageSize()"></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true"
+                           type="custom"
+                           [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain">
+        </dxo-state-storing>
+        <!-- Columns -->
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="태넌트" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="item"
+                    [caption]="utilService.convert('sales.item_cd')" width="150"></dxi-column>
+        <dxi-column dataField="itemName"
+                    [caption]="utilService.convert1('mm_ptitemroute_itemName', '품목명')" alignment="left"
+                    width="250"></dxi-column>
+        <dxi-column dataField="revision" [caption]="utilService.convert1('bomadmin_revision', 'revision')"
+                    alignment="center" width="100">
+          <!--          <dxo-lookup [dataSource]="getFilteredRevision2" displayExpr="revision" valueExpr="uid"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="unit" width="100"
+                    [caption]="utilService.convert1('bomadmin_unit', '단위')" [allowEditing]="false" alignment="center">
+          <dxo-lookup [dataSource]="dsUnitStyle" displayExpr="code" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="spec" width="150"
+                    [caption]="utilService.convert1('bomadmin_spec', '규격')" [allowEditing]="false">
+        </dxi-column>
+        <!--        <dxi-column dataField="workSeq"-->
+        <!--                    [caption]="utilService.convert1('mm_ptitemroute', '작업순서')">-->
+        <!--        </dxi-column>-->
+        <dxi-column dataField="routId" width="200"
+                    [caption]="utilService.convert1('mm_ptitemroute_routID', '공정ID')">
+          <dxo-lookup [dataSource]="dsRout" displayExpr="display" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <!--        <dxi-column dataField="routNm"-->
+        <!--                    [caption]="utilService.convert1('mm_ptitemroute_routNm', '공정명')"></dxi-column>-->
+        <!--        <dxi-column dataField="workCt"-->
+        <!--                    [caption]="utilService.convert1('mm_ptitemroute_workCt', '작업내용')"></dxi-column>-->
+        <dxi-column dataField="lossRate" [caption]="utilService.convert1('bomadmin_lossQty', '폐기량')"
+                    format='#,##0.####' width="100">
+        </dxi-column>
+
+        <dxi-column dataField="remarks"
+                    [caption]="utilService.convert1('mm_itemadmin_remarks', '비고')"></dxi-column>
+
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn alignment="center"></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn alignment="center"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+
+<!-- Grid popup-->
+<dx-popup
+  #popup
+  [(title)]="popupMode"
+  [closeOnOutsideClick]="false"
+  [dragEnabled]="true"
+  [resizeEnabled]="true"
+  [(visible)]="popupVisible"
+  (onShown)="popupShown($event)"
+  (onHidden)="onPopupAfterClose()"
+>
+  <dxi-toolbar-item
+    #deleteBtn
+    widget="dxButton"
+    location="before"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_del'),
+      stylingMode: 'Contained',
+      type: 'danger',
+      onClick: popupDeleteClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    #saveBtn
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_save'),
+      type: 'success',
+      onClick: popupSaveClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_close'),
+      stylingMode: 'outlined',
+      type: 'normal',
+      onClick: popupCancelClick
+    }"></dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupData"
+             labelLocation="left"
+             [showColonAfterLabel]="true"
+             [scrollingEnabled]="true"
+             [colCountByScreen]="{
+                lg:6, md: 6, sm:3, xs:3
+               }"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group"
+                [caption]="this.utilService.convert1('mm_itemrout_title', '제품별공정 등록')"
+                [colCount]="6"
+                [colSpan]="6">
+        <dxi-item dataField="tenant" [label]="{text: 'tenant'}" [visible]="false"
+                  [editorOptions]="{ value: G_TENANT }"></dxi-item>
+        <dxi-item dataField="uid" [label]="{text: 'uid'}" [visible]="false"></dxi-item>
+        <dxi-item dataField="workSeq" [label]="{text: utilService.convert1('mm_ptitemroute_workSeq','작업순서')}"
+                  [visible]="false"></dxi-item>
+
+        <dxi-item dataField="itemId" [label]="{text: utilService.convert('/mm/item')}"
+                  editorType="dxSelectBox" [colSpan]="2"
+                  [editorOptions]="{
+                        items: dsItemId,
+                        displayExpr: 'display',
+                        valueExpr: 'uid',
+                        searchMode:'contains',
+                        searchEnabled: true,
+                        showClearButton: true,
+                        openOnFieldClick: false,
+                        minSearchLength: 0,
+                        placeholder: '',
+                        onValueChanged: onItemIdChanged,
+                        noDataText: utilService.convert('com_txt_noDataText')
+                  }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('/mm/item'))">
+          </dxi-validation-rule>
+        </dxi-item>
+
+        <dxi-item dataField="childRevision" [label]="{text: utilService.convert1('mm_ptprodrq_revision','revision')}"
+                  editorType="dxSelectBox" [colSpan]="2"
+                  [editorOptions]="{
+                                      items: dsRevision,
+                                      displayExpr: 'childRevision',
+                                      valueExpr: 'childRevision',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                      }">
+        </dxi-item>
+        <dxi-item dataField="routId" [label]="{text: utilService.convert('mm_ptitemroute_gridtitle')}"
+                  [colSpan]="2"
+                  editorType="dxSelectBox" [editorOptions]="{
+                                      items: dsFilteredRoutId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText'),
+                                      onValueChanged: selectRoutId
+                                      }">
+        </dxi-item>
+        <dxi-item dataField="lossRate" [visible]="lossRateVisible"
+                  [label]="{text: utilService.convert1('bomadmin_lossQty', '폐기량')}" [colSpan]="2">
+        </dxi-item>
+      </dxi-item>
+
+      <dxi-item [caption]="utilService.convert1('bomadmin.fileDownloadBtn', '파일 업로드/다운로드')"
+                itemType="group"
+                [colCount]="6"
+                [colSpan]="6">
+        <!--        <dxi-item [colCount]="4" >-->
+
+        <dxi-item [colSpan]="2">
+          <form id="uploadForm" action="{{uploadUrl}}/master-service/bomadmin/uploadFile" method="post"
+                enctype="multipart/form-data">
+            <input type="hidden" value="{{logFileNm}}"/>
+            <dx-file-uploader #fileUploader
+                              name="file"
+                              [multiple]="false"
+                              [selectButtonText]="utilService.convert1('sales.fileUploadButtonText', '파일첨부', 'Attachment')"
+                              labelText=""
+                              accept="image/*, .xls, .xlsx, .cvs, .pdf"
+                              uploadMethod="POST"
+                              [uploadUrl]="uploadUrl"
+                              (onOptionChanged)="onOptionChanged($event)"
+                              uploadMode="useForm"
+                              [allowCanceling]="true"
+            >
+            </dx-file-uploader>
+          </form>
+        </dxi-item>
+        <dxi-item dataField="phyFileNm" [label]="{text: ' '}" [editorOptions]="{ readOnly: true}"
+                  [colSpan]="2"></dxi-item>
+
+        <!--        </dxi-item>-->
+        <dxi-item [colSpan]="4">
+          <dx-button #downloadFileBtn
+                     icon="save"
+                     type="normal"
+                     [text]="utilService.convert1('salse.downlaod_btn', '다운로드', 'Download')"
+                     (onClick)="onDownloadFile()">
+          </dx-button>
+          <dx-button #deleteFileBtn
+                     icon="save"
+                     type="normal"
+                     [text]="utilService.convert1('sales.delete_btn', '삭제', 'Delete')"
+                     (onClick)="onDeleteFile()">
+          </dx-button>
+        </dxi-item>
+      </dxi-item>
+
+      <dxi-item [caption]="utilService.convert1('bomadmin.fileDownloadImage', '파일이미지', 'File Download Image')"
+                itemType="group"
+                [colCount]="6"
+                [colSpan]="6">
+        <dxi-item itemType="empty" [colCount]="1" [colSpan]="1"></dxi-item>
+        <dxi-item [colCount]="3" [colSpan]="3">
+          <img id="legacyImage" onerror="this.style.display='none'" height='250' width='250'/>
+        </dxi-item>
+        <dxi-item itemType="empty" [colCount]="1" [colSpan]="1"></dxi-item>
+      </dxi-item>
+
+
+      <dxi-item itemType="group"
+                [caption]="utilService.convert1('mm_ptitemroute_popupgrid', '공정등록')"
+                [colCount]="6"
+                [colSpan]="6">
+        <dx-data-grid
+          #popupGrid
+          [dataSource]="popupDataSource"
+          (onToolbarPreparing)="gridUtil.onToolbarPreparingWithComBtn($event, this, addClick, deleteClick)"
+          (onFocusedCellChanged)="onFocusedCellChanging($event, this.popupGrid)"
+          [showRowLines]="true"
+          [rowAlternationEnabled]="true"
+          [allowColumnReordering]="true"
+          [columnAutoWidth]="true"
+          [allowColumnResizing]="true"
+          [focusedRowEnabled]="true"
+          (onExporting)="gridUtil.onPageExportXlsx($event)"
+          (onEditingStart)="onEditingStart($event)"
+          [height]="260"
+          columnResizingMode=nextColumn
+        >
+          <dxo-editing mode="batch"
+                       [(changes)]="changes"
+                       [allowUpdating]="true"
+                       [selectTextOnEditStart]="true"
+                       [newRowPosition]="'last'"
+          ></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+          <dxo-search-panel
+            [visible]="true"
+            [width]="240"
+            [placeholder]="''"></dxo-search-panel>
+          <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+          <dxo-pager
+            [visible]="true"
+            [allowedPageSizes]=gridUtil.getAllowedPageSize()
+            [displayMode]="'full'"
+            [showPageSizeSelector]="true"
+            [showInfo]="true"
+            [showNavigationButtons]="true"
+          >
+          </dxo-pager>
+          <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStatePopup"
+                             [customSave]="saveStatePopup"></dxo-state-storing>
+          <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                      [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+          <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                      [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+          <!--          <dxi-column name="No" [caption]="utilService.convert('com_text_no')"-->
+          <!--                      cellTemplate="NoTemplate" alignment="center"></dxi-column>-->
+          <!--          <div *dxTemplate="let data of 'NoTemplate'">-->
+          <!--            {{ data.rowIndex + 1}}-->
+          <!--          </div>-->
+          <dxi-column dataField="workSeq" cssClass="grid-cell-required" width="80"
+                      [caption]="utilService.convert1('mm_ptitemroute', '작업순서')" alignment="center">
+            <dxi-validation-rule type="required"></dxi-validation-rule>
+          </dxi-column>
+          <!--          <dxi-column dataField="routId" cssClass="grid-cell-required"-->
+          <!--                      [caption]="utilService.convert1('mm_ptitemroute_routID', '공정ID')" [setCellValue]="setRoutValue">-->
+          <!--            <dxo-lookup [dataSource]="dsRout" displayExpr="display" valueExpr="uid"></dxo-lookup>-->
+          <!--            <dxi-validation-rule type="required"></dxi-validation-rule>-->
+          <!--          </dxi-column>-->
+          <!--          <dxi-column dataField="routNm"-->
+          <!--                      [caption]="utilService.convert1('mm_ptitemroute_routNm', '공정명')"></dxi-column>-->
+          <dxi-column dataField="workCt" width="250"
+                      [caption]="utilService.convert1('mm_ptitemroute_workCt2', '공정설명')"></dxi-column>
+          <!--          <dxi-column dataField="routGb"-->
+          <!--                      [caption]="utilService.convert1('mm_ptroute_routGb', '공정유형')" [allowEditing]="false"-->
+          <!--                      alignment="center">-->
+          <!--            <dxo-lookup [dataSource]="dsRoutGb" displayExpr="codeName" valueExpr="code"></dxo-lookup>-->
+          <!--          </dxi-column>-->
+          <!--          <dxi-column dataField="lossRate" [caption]="utilService.convert1('bomadmin_lossQty', '폐기량')"-->
+          <!--                      alignment="center" format='#,##0.####' cssClass="grid-cell-required"-->
+          <!--                      [editorOptions]="{format:'##0.####', step:0, max:100}">-->
+          <!--          </dxi-column>-->
+          <dxi-column type="buttons" [caption]="utilService.convert1('ptitemroute_imagefilebutton', '이미지업로드버튼')"
+                      width="120">
+            <dxi-button template="getLinkTemplate"
+                        [hint]="utilService.convert1('ptitemroute_insertimagefile', '이미지 업로드', 'Insert image')"
+            >
+              <div *dxTemplate="let datas of 'getLinkTemplate'" style="display:inline">
+                <dx-button (click)="onImagePopupOpen($event, datas)"
+                           style="border: white; height: 100%; width: 100%;">
+                  <i class="dx-icon-xlsfile" style="position: relative;"></i>
+                </dx-button>
+              </div>
+            </dxi-button>
+          </dxi-column>
+          <dxi-column dataField="phyFileNm" [allowEditing]="false" width="200"
+                      [caption]="utilService.convert1('mm_itemadmin_imagename', 'imageName')">
+          </dxi-column>
+          <dxi-column dataField="logFileNm" cellTemplate="cellTemplate" [allowEditing]="false" width="200"
+                      [caption]="utilService.convert1('mm_itemadmin_image', 'image')">
+            <div *dxTemplate="let cell of 'cellTemplate'">
+              <img src="{{cell.value ? legacyImage + cell.value : ''}}" onerror="this.style.display='none'"
+                   style="display:{{cell.text ? 'block' : 'none'}}; width:150px; height:150px"/>
+              <!--              <img src="{{legacyImage}}{{cell.value}}" onerror="this.style.display='none'"-->
+              <!--                   style="display:{{cell.text ? 'block' : 'none'}}; width:150px; height:150px"/>-->
+            </div>
+
+          </dxi-column>
+
+          <dxi-column dataField="remarks"
+                      [caption]="utilService.convert1('mm_itemadmin_remarks', '비고')">
+          </dxi-column>
+
+          <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                      [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+            <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                      [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn alignment="center"></dxi-column>
+          <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                      [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+            <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                      [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn alignment="center"></dxi-column>
+        </dx-data-grid>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>
+
+<dx-popup #imagePopup
+          [title]="utilService.convert1('ptitemroute_imagepopup', '이미지 등록')"
+          [closeOnOutsideClick]="false"
+          [dragEnabled]="true"
+          (onHidden)="onImagePopupAfterClosed()"
+          (onShown)="imagePopupShown($event)"
+          [width]="700"
+>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <dx-button type="success"
+               [text]="utilService.convert('com_btn_upload')"
+               (onClick)="onImageUploadClick()">
+    </dx-button>
+    <dx-button type="normal"
+               [text]="utilService.convert('com_btn_close')"
+               (onClick)="onImagePopupClose()">
+    </dx-button>
+  </dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #imagePopupForm
+             [(formData)]="imagePopupData"
+             labelLocation="left"
+             [showColonAfterLabel]="true"
+             [scrollingEnabled]="true"
+             [colCountByScreen]="{
+               lg:8, md: 8, sm:4, xs:2
+               }"
+    >
+
+      <dxi-item [caption]="utilService.convert1('bomadmin.fileDownloadBtn', '파일 업로드/다운로드')"
+                itemType="group"
+                [colCount]="8"
+                [colSpan]="8">
+        <!--        <dxi-item [colCount]="4" >-->
+
+        <dxi-item [colSpan]="2">
+          <form id="uploadForm2" action="{{uploadUrl}}/master-service/bomadmin/uploadFile" method="post"
+                enctype="multipart/form-data">
+            <input type="hidden" value="{{logFileNm}}"/>
+            <dx-file-uploader #fileUploader2
+                              name="file"
+                              [multiple]="false"
+                              [selectButtonText]="utilService.convert1('sales.fileUploadButtonText', '파일첨부', 'Attachment')"
+                              labelText=""
+                              accept="image/*, .xls, .xlsx, .cvs, .pdf"
+                              uploadMethod="POST"
+                              [uploadUrl]="uploadUrl"
+                              (onOptionChanged)="onOptionChanged2($event)"
+                              uploadMode="useForm"
+                              [allowCanceling]="true"
+            >
+            </dx-file-uploader>
+          </form>
+        </dxi-item>
+        <dxi-item dataField="phyFileNm" [label]="{text: ' '}" [editorOptions]="{ readOnly: true}"
+                  [colSpan]="2"></dxi-item>
+
+        <!--        </dxi-item>-->
+        <dxi-item [colSpan]="4">
+          <dx-button #downloadFileBtn2
+                     icon="save"
+                     type="normal"
+                     [text]="utilService.convert1('salse.downlaod_btn', '다운로드', 'Download')"
+                     (onClick)="onDownloadFile2()">
+          </dx-button>
+          <dx-button #deleteFileBtn2
+                     icon="save"
+                     type="normal"
+                     [text]="utilService.convert1('sales.delete_btn', '삭제', 'Delete')"
+                     (onClick)="onDeleteFile2()">
+          </dx-button>
+        </dxi-item>
+      </dxi-item>
+      <dxi-item [caption]="utilService.convert1('bomadmin.fileDownloadImage', '파일이미지', 'File Download Image')"
+                itemType="group"
+                [colCount]="8"
+                [colSpan]="8">
+        <dxi-item itemType="empty" [colCount]="1" [colSpan]="1"></dxi-item>
+        <dxi-item [colCount]="4" [colSpan]="4">
+          <img id="legacyImage2" onerror="this.style.display='none'" height='300' width='300'/>
+        </dxi-item>
+        <dxi-item itemType="empty" [colCount]="1" [colSpan]="1"></dxi-item>
+      </dxi-item>
+
+    </dx-form>
+  </div>
+</dx-popup>
+

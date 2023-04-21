@@ -1,0 +1,284 @@
+<!-- 헤더 -->
+<div class="contents-header">
+  <!-- 페이지 타이틀 -->
+  <h2 class="content-block page-title">{{utilService.convert('/saor/saor110')}}</h2>
+  <!-- 페이지 로드맵 -->
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group"></span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_fodable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               (onEditorEnterKey)="onSearch()"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [height]="63"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{lg:6, md: 6, sm:3, xs:1}"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item itemType="group"
+                    [label]="{text: utilService.convert1('sales.ord_dt', '주문일자', 'Order Date')}" [colSpan]="2">
+            <dx-date-box #fromOrdDt
+                         name="fromOrdDt"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM-dd"
+                         dateSerializationFormat="yyyy-MM-dd"
+                         [calendarOptions]="{useMaskBehavior:'true'}"
+                         width="45%"
+                         [elementAttr]="{ style: 'float:left' }"
+            >
+            </dx-date-box>
+            <div style="float:left;margin:5px">~</div>
+            <dx-date-box #toOrdDt
+                         name="toOrdDt"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM-dd"
+                         dateSerializationFormat="yyyy-MM-dd"
+                         [calendarOptions]="{useMaskBehavior:'true'}"
+                         width="45%"
+                         [elementAttr]="{ style: 'float:left' }"
+            >
+            </dx-date-box>
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()">
+        </dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()"
+                   class="search-btn">
+        </dx-button>
+      </div>
+    </div>
+
+    <dx-accordion [collapsible]="true"
+                  [multiple]="true"
+                  [animationDuration]="300">
+      <dxi-item [title]="utilService.convert('sales.ord_list')">
+        <dx-data-grid #mainGrid
+                      [dataSource]="dataSource"
+                      (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                      (onFocusedRowChanged)="onFocusedRowChanging($event)"
+                      (onFocusedCellChanged)="onFocusedCellChanging($event)"
+                      [allowColumnResizing]="true"
+                      [focusedRowEnabled]="true"
+                      [rowAlternationEnabled]="true"
+                      [columnAutoWidth]="true"
+                      [showRowLines]="true"
+                      (onOptionChanged)="onOptionChanged($event)"
+                      columnResizingMode=nextColumn
+                      [height]="250">
+          <dxo-editing mode="batch"></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true"></dxo-export>
+          <dxo-search-panel [visible]="true"
+                            [width]="240"
+                            [placeholder]="''">
+          </dxo-search-panel>
+          <dxo-paging [enabled]="true"
+                      [pageSize]=gridUtil.getPageSize()>
+          </dxo-paging>
+          <dxo-pager [visible]="true"
+                     [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                     [displayMode]="'full'"
+                     [showPageSizeSelector]="true"
+                     [showInfo]="true"
+                     [showNavigationButtons]="true">
+          </dxo-pager>
+          <dxo-state-storing [enabled]="true"
+                             type="custom">
+          </dxo-state-storing>
+          <!-- Columns -->
+          <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                      alignment="center"></dxi-column>
+          <div *dxTemplate="let data of 'NoTemplate'">
+            {{ data.rowIndex + 1}}
+          </div>
+          <dxi-column dataField="itemcategory1id" [caption]="utilService.convert('sales.itemcategory1id')"
+                      [visible]="false"></dxi-column>
+          <dxi-column dataField="itemcategory1id_nm" [caption]="utilService.convert('sales.itemcategory1id')"
+                      alignment="center"></dxi-column>
+          <dxi-column [caption]="utilService.convert('sales.rent')" alignment="center">
+            <dxi-column dataField="day_rent_qty" [caption]="utilService.convert('sales.qty')"
+                        format="#,##0.####"></dxi-column>
+            <dxi-column dataField="day_rent_sum" [caption]="utilService.convert('sales.amt')"
+                        format="#,##0.####"></dxi-column>
+          </dxi-column>
+          <dxi-column [caption]="utilService.convert('sales.sale')" alignment="center">
+            <dxi-column dataField="day_ord_qty" [caption]="utilService.convert('sales.qty')"
+                        format="#,##0.####"></dxi-column>
+            <dxi-column dataField="day_ord_sum" [caption]="utilService.convert('sales.amt')"
+                        format="#,##0.####"></dxi-column>
+          </dxi-column>
+          <dxi-column [caption]="utilService.convert('sales.sample')" alignment="center">
+            <dxi-column dataField="day_sample_qty" [caption]="utilService.convert('sales.qty')"
+                        format="#,##0.####"></dxi-column>
+            <dxi-column dataField="day_sample_sum" [caption]="utilService.convert('sales.amt')"
+                        format="#,##0.####"></dxi-column>
+          </dxi-column>
+
+          <dxi-column [caption]="utilService.convert('sales.sum')" alignment="center">
+            <dxi-column dataField="day_sum_qty" [caption]="utilService.convert('sales.qty')"
+                        format="#,##0.####"></dxi-column>
+            <dxi-column dataField="day_sum_amt" [caption]="utilService.convert('sales.amt')"
+                        format="#,##0.####"></dxi-column>
+          </dxi-column>
+          <dxi-column dataField="createdby" [caption]="utilService.convert('com_text_createdBy')"
+                      [allowEditing]="false" [visible]="false">
+            <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="createddatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                      [allowEditing]="false" [visible]="false"></dxi-column>
+          <dxi-column dataField="modifiedby" [caption]="utilService.convert('com_text_modifiedBy')"
+                      [allowEditing]="false" [visible]="false">
+            <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="modifieddatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                      [allowEditing]="false" [visible]="false"></dxi-column>
+          <dxo-summary [calculateCustomSummary]="calculateCustomSummary">
+            <dxi-total-item showInColumn="day_rent_qty" name="day_rent_qty" summaryType="custom" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item showInColumn="day_rent_sum" name="day_rent_sum" summaryType="custom" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item showInColumn="day_ord_qty" name="day_ord_qty" summaryType="custom" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item showInColumn="day_ord_sum" name="day_ord_sum" summaryType="custom" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item showInColumn="day_sample_qty" name="day_sample_qty" summaryType="custom" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item showInColumn="day_sample_sum" name="day_sample_sum" summaryType="custom" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item showInColumn="day_sum_qty" name="day_sum_qty" summaryType="custom" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item showInColumn="day_sum_amt" name="day_sum_amt" summaryType="custom" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+          </dxo-summary>
+        </dx-data-grid>
+      </dxi-item>
+    </dx-accordion>
+
+    <dx-accordion [collapsible]="true"
+                  [multiple]="true"
+                  [animationDuration]="300">
+      <dxi-item [title]="utilService.convert('sales.item_list')">
+        <dx-data-grid #subGrid
+                      [dataSource]="subDataSource"
+                      (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                      [allowColumnResizing]="true"
+                      [focusedRowEnabled]="true"
+                      [rowAlternationEnabled]="true"
+                      [columnAutoWidth]="true"
+                      [showRowLines]="true"
+                      columnResizingMode=nextColumn>
+          <dxo-editing mode="batch"></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true"></dxo-export>
+          <dxo-search-panel [visible]="true"
+                            [width]="240"
+                            [placeholder]="''">
+          </dxo-search-panel>
+          <dxo-paging [enabled]="true"
+                      [pageSize]=gridUtil.getPageSize()>
+          </dxo-paging>
+          <dxo-pager [visible]="true"
+                     [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                     [displayMode]="'full'"
+                     [showPageSizeSelector]="true"
+                     [showInfo]="true"
+                     [showNavigationButtons]="true">
+          </dxo-pager>
+          <dxo-state-storing [enabled]="true"
+                             type="custom">
+          </dxo-state-storing>
+          <!-- Columns -->
+          <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                      alignment="center"></dxi-column>
+          <div *dxTemplate="let data of 'NoTemplate'">
+            {{ data.rowIndex + 1}}
+          </div>
+          <dxi-column dataField="item_cd" [caption]="utilService.convert('sales.item')" alignment="center"></dxi-column>
+          <dxi-column dataField="item_nm" [caption]="utilService.convert('sales.item_nm')"></dxi-column>
+          <dxi-column dataField="spec_nm" [caption]="utilService.convert('sales.spec_nm')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="sto_unit" [caption]="utilService.convert1('sales.unit', '단위', 'Unit')"
+                      alignment="center">
+            <dxo-lookup [dataSource]="dsUnitStyle" displayExpr="display" valueExpr="code"></dxo-lookup>
+          </dxi-column>
+          <dxi-column [caption]="utilService.convert('sales.rent')" alignment="center">
+            <dxi-column dataField="rent_qty" [caption]="utilService.convert('sales.qty')"
+                        format="#,##0.####"></dxi-column>
+            <dxi-column dataField="rent_amt" [caption]="utilService.convert('sales.amt')"
+                        format="#,##0.####"></dxi-column>
+          </dxi-column>
+          <dxi-column [caption]="utilService.convert('sales.sale')" alignment="center">
+            <dxi-column dataField="ord_qty" [caption]="utilService.convert('sales.qty')"
+                        format="#,##0.####"></dxi-column>
+            <dxi-column dataField="ord_amt" [caption]="utilService.convert('sales.amt')"
+                        format="#,##0.####"></dxi-column>
+          </dxi-column>
+          <dxi-column [caption]="utilService.convert('sales.sample')" alignment="center">
+            <dxi-column dataField="sample_qty" [caption]="utilService.convert('sales.qty')"
+                        format="#,##0.####"></dxi-column>
+            <dxi-column dataField="sample_amt" [caption]="utilService.convert('sales.amt')"
+                        format="#,##0.####"></dxi-column>
+          </dxi-column>
+          <dxi-column [caption]="utilService.convert('sales.sum')" alignment="center">
+            <dxi-column dataField="tot_ord_qty" [caption]="utilService.convert('sales.qty')"
+                        format="#,##0.####"></dxi-column>
+            <dxi-column dataField="tot_ord_amt" [caption]="utilService.convert('sales.amt')"
+                        format="#,##0.####"></dxi-column>
+          </dxi-column>
+          <dxi-column dataField="createdby" [caption]="utilService.convert('com_text_createdBy')"
+                      [allowEditing]="false" [visible]="false">
+            <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="createddatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                      [allowEditing]="false" [visible]="false"></dxi-column>
+          <dxi-column dataField="modifiedby" [caption]="utilService.convert('com_text_modifiedBy')"
+                      [allowEditing]="false" [visible]="false">
+            <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="modifieddatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                      [allowEditing]="false" [visible]="false"></dxi-column>
+          <dxo-summary>
+            <dxi-total-item column="rent_qty" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="rent_amt" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="ord_qty" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="ord_amt" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="sample_qty" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="sample_amt" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="tot_ord_qty" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="tot_ord_amt" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+          </dxo-summary>
+        </dx-data-grid>
+      </dxi-item>
+    </dx-accordion>
+  </div>
+</div>

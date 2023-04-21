@@ -1,0 +1,355 @@
+<!-- 공통 > 창고 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/mm/warehouse')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+      <dx-button icon="add"
+                 id="Open"
+                 type="default"
+                 [text]="utilService.convert('com_btn_new')"
+                 (onClick)="onPopupOpen($event)">
+      </dx-button>
+    </span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                                lg:3, md: 3, sm:1, xs:1
+                         }"
+      >
+        <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item dataField="warehouse"
+                    [label]="{text: utilService.convert1('mm_warehouse_warehouse', 'ID')}"></dxi-item>
+          <dxi-item dataField="name" [label]="{text: utilService.convert1('mm_warehouse_name', '창고명')}"></dxi-item>
+          <dxi-item dataField="actFlg"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert1('com_code_actFlg', '사용여부')}"
+                    [editorOptions]="{  items: dsYN,
+                                            displayExpr: 'codeName',
+                                            valueExpr: 'code',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }"
+          >
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('warehouseList', '창고리스트', 'Warehouse List')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainGridDataSource"
+                    (onRowDblClick)="onPopupOpen($event)"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [allowColumnReordering]="true"
+                    [showRowLines]="true"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true"
+                           type="custom"
+                           [customLoad]="loadState"
+                           [customSave]="saveState">
+        </dxo-state-storing>
+
+        <!-- Columns -->
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <!-- Entity의 Key 값 -->
+        <dxi-column dataField="warehouse"
+                    [caption]="utilService.convert1('mm_warehouse_warehouse', 'ID')"></dxi-column>
+        <dxi-column dataField="name" [caption]="utilService.convert1('mm_warehouse_name', '창고명')"></dxi-column>
+        <dxi-column dataField="actFlg" [caption]="utilService.convert1('com_code_actFlg', '사용여부')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="logisticsId" [caption]="utilService.convert1('mm_warehouse_logisticsId', '창고회사')">
+          <dxo-lookup [dataSource]="dsLogistics" displayExpr="display" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="warehouseGroup"
+                    [caption]="utilService.convert1('mm_warehouse_warehouseGroup', '창고그룹')" alignment="center">
+          <dxo-lookup [dataSource]="dsWarehouseGroup" displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="virtualWhFlg" [caption]="utilService.convert1('mm_warehouse_virtualWhFlg', '가상창고여부')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="countrycd" [caption]="utilService.convert1('mm_warehouse_countrycd', '국가')">
+          <dxo-lookup [dataSource]="dsCountry" displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="zip" [caption]="utilService.convert1('mm_warehouse_zip', '우편번호')"></dxi-column>
+        <dxi-column dataField="refName"
+                    [caption]="utilService.convert1('mm_warehouse_refName', '담당자')"></dxi-column>
+        <dxi-column dataField="email" [caption]="utilService.convert1('mm_warehouse_email', 'E-Mail')"></dxi-column>
+        <!--    <dxi-column dataField="url" caption="Hompage"></dxi-column>-->
+        <dxi-column dataField="address1"
+                    [caption]="utilService.convert1('mm_warehouse_address1', '주소1')"></dxi-column>
+        <dxi-column dataField="address2"
+                    [caption]="utilService.convert1('mm_warehouse_address2', '주소2')"></dxi-column>
+        <dxi-column dataField="phone1" [caption]="utilService.convert1('mm_warehouse_phone1', '전화1')"
+                    [editorOptions]="{mask: '+ccc) ccccccccccccccccc',  maskChar: ' ', maskInvalidMessage: 'The input value does not match the mask', onOptionChanged: focusIn}">
+        </dxi-column>
+        <dxi-column dataField="phone2" [caption]="utilService.convert1('mm_warehouse_phone2', '전화2')"
+                    [editorOptions]="{mask: '+ccc) ccccccccccccccccc',  maskChar: ' ', maskInvalidMessage: 'The input value does not match the mask', onOptionChanged: focusIn}">
+        </dxi-column>
+        <dxi-column dataField="fax1" [caption]="utilService.convert1('mm_warehouse_fax1', 'FAX')"
+                    [editorOptions]="{mask: '+ccc) ccccccccccccccccc',  maskChar: ' ', maskInvalidMessage: 'The input value does not match the mask', onOptionChanged: focusIn}">
+        </dxi-column>
+        <dxi-column dataField="weightCapacity"
+                    [caption]="utilService.convert1('mm_warehouse_weightCapacity', '허용중량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="capacity" [caption]="utilService.convert1('mm_warehouse_capacity', '허용용적')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="remarks" [caption]="utilService.convert1('mm_warehouse_remarks', '비고')"></dxi-column>
+
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+<!-- Grid popup-->
+<dx-popup #popup
+          [(title)]="popupMode"
+          [dragEnabled]="true"
+          [resizeEnabled]="true"
+          (onShown)="onPopupAfterOpen()"
+          (onHidden)="onPopupAfterClose()"
+>
+  <dxi-toolbar-item toolbar="bottom" location="before">
+    <dx-button #deleteBtn
+               type="danger"
+               [text]="utilService.convert('com_btn_del')"
+               (onClick)="onPopupDelete()">
+    </dx-button>
+  </dxi-toolbar-item>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <dx-button type="success"
+               [text]="utilService.convert('com_btn_save')"
+               (onClick)="onPopupSave()">
+    </dx-button>
+    <dx-button type="normal"
+               [text]="utilService.convert('com_btn_close')"
+               (onClick)="onPopupClose()">
+    </dx-button>
+  </dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupFormData"
+             [scrollingEnabled]="true"
+             [showColonAfterLabel]="false"
+             [colCountByScreen]="{
+                     lg:3, md: 3, sm:1, xs:1
+               }"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group" [caption]="utilService.convert1('mm_warehouse_popupForm_title', '기본정보')"
+                [colCount]="3"
+                [colSpan]="3">
+        <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                  [editorOptions]="{ value: G_TENANT }"></dxi-item>
+        <dxi-item dataField="warehouse" [label]="{text: utilService.convert1('mm_warehouse_warehouse', 'ID')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_warehouse_warehouse'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="name" [label]="{text: utilService.convert1('mm_warehouse_name', '창고명')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_warehouse_name'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="shortName" [label]="{text: utilService.convert1('mm_warehouse_shortName', '창고명(약어)')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_warehouse_shortName'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="actFlg" [label]="{text: utilService.convert1('com_code_actFlg', '사용여부')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsYN,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                  }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('com_code_actFlg'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="logisticsId" [label]="{text: utilService.convert1('mm_warehouse_logisticsId', '물류회사')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsLogistics,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                  }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_warehouse_logisticsId'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="warehouseGroup"
+                  [label]="{text: utilService.convert1('mm_warehouse_warehouseGroup', '창고그룹')}" editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsWarehouseGroup,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                  }"></dxi-item>
+        <dxi-item dataField="virtualWhFlg" [label]="{text: '가상창고여부'}" editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsYN,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                  }"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+        <dxi-item dataField="refName" [label]="{text: utilService.convert1('mm_warehouse_refName', '담당자')}"></dxi-item>
+        <dxi-item dataField="phone1" [label]="{text: utilService.convert1('mm_warehouse_phone1', '전화1')}"
+                  [editorOptions]="{mask: '+ccc) ccccccccccccccccc', maskChar: ' ', maskInvalidMessage: 'The input value does not match the mask'}"></dxi-item>
+        <dxi-item dataField="phone2" [label]="{text: utilService.convert1('mm_warehouse_phone2', '전화2')}"
+                  [editorOptions]="{mask: '+ccc) ccccccccccccccccc', maskChar: ' ', maskInvalidMessage: 'The input value does not match the mask'}"></dxi-item>
+        <dxi-item dataField="fax1" [label]="{text: utilService.convert1('mm_warehouse_fax1', 'FAX')}"
+                  [editorOptions]="{mask: '+ccc) ccccccccccccccccc', maskChar: ' ', maskInvalidMessage: 'The input value does not match the mask'}"></dxi-item>
+        <dxi-item dataField="email" [label]="{text: utilService.convert1('mm_warehouse_email', 'E-Mail')}">
+          <dxi-validation-rule type="email" [message]="utilService.convert('com_valid_email')"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="url" [label]="{text: utilService.convert1('mm_warehouse_url', '홈페이지')}"></dxi-item>
+        <dxi-item dataField="weightCapacity"
+                  [label]="{text: utilService.convert1('mm_warehouse_weightCapacity', '허용중량')}"
+                  [editorOptions]="{format:'#,##0.####', step:0}" editorType="dxNumberBox"></dxi-item>
+        <dxi-item dataField="capacity" [label]="{text: utilService.convert1('mm_warehouse_capacity', '허용용적')}"
+                  [editorOptions]="{format:'#,##0.####', step:0}" editorType="dxNumberBox"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+        <dxi-item dataField="remarks" [label]="{text: utilService.convert1('mm_warehouse_remarks', '비고')}"
+                  [colSpan]="3"></dxi-item>
+      </dxi-item>
+
+      <dxi-item itemType="group" [caption]="utilService.convert1('mm_warehouse_address', '주소')" [colCount]="3"
+                [colSpan]="3">
+        <dxi-item dataField="countrycd" [label]="{text: utilService.convert1('mm_warehouse_countrycd', '국가')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsCountry,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      noDataText: utilService.convert('com_txt_noDataText'),
+                                      onValueChanged: onChangedCountry
+                  }"></dxi-item>
+        <dxi-item dataField="zip" [label]="{text: utilService.convert1('mm_warehouse_zip', '우편번호')}"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+        <dxi-item dataField="address1AutoComplete"
+                  [label]="{text: utilService.convert1('mm_warehouse_address1', '주소1')}"
+                  [colSpan]="2"></dxi-item>
+        <dxi-item>
+           <span class="btngroup page-button-group">
+          <dx-button #address
+                     type="default"
+                     [text]="utilService.convert1('company_searchAddress', '주소 검색')"
+                     (onClick)="comfirmAddress()"
+          ></dx-button>
+          </span>
+        </dxi-item>
+        <!--        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>-->
+
+        <dxi-item dataField="address2" [label]="{text: utilService.convert1('mm_warehouse_address2', '주소2')}"
+                  [colSpan]="2"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+
+        <dxi-item dataField="engAddress1" [label]="{text: utilService.convert1('주소1(영문)', '주소1(영문)')}"
+                  [colSpan]="2"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+
+        <dxi-item dataField="engAddress2" [label]="{text: utilService.convert1('주소2(영문)', '주소2(영문)')}"
+                  [colSpan]="2"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+
+        <dxi-item dataField="gps_lat"
+                  [label]="{text: utilService.convert1('mm_warehouse_gps_lat', '위도', 'Latitude')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_warehouse_gps_lat'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="gps_long"
+                  [label]="{text: utilService.convert1('mm_warehouse_gps_long', '경도', 'Longitude')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_warehouse_gps_long'))"></dxi-validation-rule>
+        </dxi-item>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>

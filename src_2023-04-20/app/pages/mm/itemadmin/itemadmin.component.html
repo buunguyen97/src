@@ -1,0 +1,218 @@
+<!-- 공통 > 품목관리사 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/mm/itemadmin')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+      <dx-button icon="add"
+                 id="Open"
+                 type="default"
+                 [text]="utilService.convert('com_btn_new')"
+                 (onClick)="onPopupOpen($event)">
+      </dx-button>
+    </span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                             lg:3, md: 3, sm:1, xs:1
+                         }"
+      >
+        <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item dataField="itemAdmin"
+                    [label]="{text: utilService.convert1('mm_itemadmin_itemAdmin', 'ID')}"></dxi-item>
+          <dxi-item dataField="name"
+                    [label]="{text: utilService.convert1('mm_itemadmin_name', '품목관리사')}"></dxi-item>
+          <dxi-item dataField="shortName"
+                    [label]="{text: utilService.convert1('mm_itemadmin_shortName', '명칭')}"></dxi-item>
+          <dxi-item dataField="actFlg" [label]="{text: utilService.convert1('com_code_actFlg', '사용여부')}"
+                    editorType="dxSelectBox"
+                    [editorOptions]="{
+                                            items: dsYN,
+                                            displayExpr: 'codeName',
+                                            valueExpr: 'code',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }"
+          >
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('mm_itemadmin_mainGridTitle', '품목관리사 리스트')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainGridDataSource"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    (onRowDblClick)="onPopupOpen($event)"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [allowColumnReordering]="true"
+                    [showRowLines]="true"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true"
+                           type="custom"
+                           [customLoad]="loadState"
+                           [customSave]="saveState">
+        </dxo-state-storing>
+
+        <!-- Columns -->
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="태넌트" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="itemAdmin" width="200"
+                    [caption]="utilService.convert1('mm_itemadmin_itemAdmin', 'ID')"></dxi-column>
+        <dxi-column dataField="name" [caption]="utilService.convert1('mm_itemadmin_name', '품목관리사')"
+                    width="200"></dxi-column>
+        <dxi-column dataField="shortName"
+                    [caption]="utilService.convert1('mm_itemadmin_shortName', '명칭')" width="200"></dxi-column>
+        <dxi-column dataField="actFlg" [caption]="utilService.convert1('mm_itemadmin_actFlg', '사용여부')"
+                    alignment="center" width="150"></dxi-column>
+        <dxi-column dataField="remarks"
+                    [caption]="utilService.convert1('mm_itemadmin_remarks', '비고')"></dxi-column>
+
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+<!-- Grid popup-->
+<dx-popup #popup
+          [(title)]="popupMode"
+          [dragEnabled]="true"
+          [resizeEnabled]="true"
+          (onHidden)="onPopupAfterClose()"
+>
+  <dxi-toolbar-item toolbar="bottom" location="before">
+    <dx-button #deleteBtn
+               type="danger"
+               [text]="utilService.convert('com_btn_del')"
+               (onClick)="onPopupDelete()">
+    </dx-button>
+  </dxi-toolbar-item>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <dx-button type="success"
+               [text]="utilService.convert('com_btn_save')"
+               (onClick)="onPopupSave()">
+    </dx-button>
+    <dx-button type="normal"
+               [text]="utilService.convert('com_btn_close')"
+               (onClick)="onPopupClose()">
+    </dx-button>
+  </dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupFormData"
+             [scrollingEnabled]="true"
+             [showColonAfterLabel]="false"
+             [colCountByScreen]="{
+                    lg:3, md: 3, sm:1, xs:1
+               }"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group" caption="Master" [colCount]="3" [colSpan]="3">
+        <dxi-item dataField="tenant" [label]="{text: 'tenant'}" [visible]="false"
+                  [editorOptions]="{ value: G_TENANT }"></dxi-item>
+        <dxi-item dataField="uid" [label]="{text: 'uid'}" [visible]="false"></dxi-item>
+
+        <dxi-item dataField="itemAdmin" [label]="{text: utilService.convert1('mm_itemadmin_itemAdmin', 'ID')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_itemadmin_itemAdmin'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="name" [label]="{text: utilService.convert1('mm_itemadmin_name', '품목관리사')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_itemadmin_name'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="shortName" [label]="{text: utilService.convert1('mm_itemadmin_shortName', '명칭')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_itemadmin_shortName'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="actFlg" [label]="{text: utilService.convert1('com_code_actFlg', '사용여부')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsYN,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"
+        >
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('com_code_actFlg'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="remarks" [label]="{text: utilService.convert1('mm_itemadmin_remarks', '비고')}"
+                  [colSpan]="4"></dxi-item>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>

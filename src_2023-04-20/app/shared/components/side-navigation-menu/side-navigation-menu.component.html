@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2021 JFLab All rights reserved.
+  ~ File Name : side-navigation-menu.component.html
+  ~ Author : jbh5310
+  ~ Lastupdate : 2021-09-21 16:08:12
+  -->
+
+<ng-content></ng-content>
+
+<div class="menu-container">
+  <dx-tree-view
+    [items]="items"
+    keyExpr="uid"
+    selectionMode="single"
+    [focusStateEnabled]="false"
+    expandEvent="click"
+    (onItemClick)="onItemClick($event)"
+    width="100%"
+    [searchEnabled]="true"
+    searchMode="contains"
+    visible="visible"
+    noDataText=""
+  >
+  </dx-tree-view>
+</div>

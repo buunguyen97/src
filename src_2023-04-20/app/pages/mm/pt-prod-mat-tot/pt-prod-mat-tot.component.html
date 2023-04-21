@@ -1,0 +1,227 @@
+<!-- 생산 > 재료비 산정 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert1('/pp/ptprodmattot', '재료비산정')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+     <dx-button
+       icon="add"
+       id="Open"
+       type="default"
+       [text]="utilService.convert1('ptprodmattot_button','산정')"
+       (onClick)="onProdMatTot($event)"
+     ></dx-button>
+  </span>
+</div>
+
+<!-- TAB1-->
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item itemType="group" [label]="{text: utilService.convert1('prodtot_costYm', '평가년월')}" [colSpan]="2">
+            <dx-date-box #mainCostYm
+                         name="costYm"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM"
+                         dateSerializationFormat="yyyy-MM"
+                         [value]="now"
+                         [calendarOptions]="{useMaskBehavior:'true', zoomLevel: 'year',  maxZoomLevel: 'year'}">
+            </dx-date-box>
+            <!--            <dx-date-box-->
+            <!--              name="costYm"-->
+            <!--              [value]="now"-->
+            <!--              type="date"-->
+            <!--              pickerType="calendar"-->
+            <!--              displayFormat="yyyy-MM"-->
+            <!--              dateSerializationFormat="yyyy-MM"-->
+            <!--              [calendarOptions]="{zoomLevel: 'year', minZoomLevel: 'year', maxZoomLevel: 'year'}"-->
+            <!--            >-->
+            <!--            </dx-date-box>-->
+          </dxi-item>
+
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <!--Grid-->
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('prodtot_searchbox2','평가')">
+      <div class="search_foldable">
+        <div class="search-box">
+          <dx-form #prodMatTotForm
+                   labelLocation="left"
+                   [(formData)]="prodTotFormData"
+                   [showColonAfterLabel]="false"
+                   [minColWidth]="300"
+                   [colCount]="3"
+                   [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+          >
+            <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+              <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                        [editorOptions]="{ value: G_TENANT }"></dxi-item>
+
+              <dxi-item itemType="group" [label]="{text: utilService.convert1('prodtot_costYm', '평가년월')}" [colSpan]="2">
+                <dx-date-box
+                  name="costYm"
+                  [value]="now"
+                  type="date"
+                  pickerType="calendar"
+                  displayFormat="yyyy-MM"
+                  dateSerializationFormat="yyyy-MM"
+                  [calendarOptions]="{useMaskBehavior:'true', zoomLevel: 'year',  maxZoomLevel: 'year'}">
+                </dx-date-box>
+              </dxi-item>
+              <dxi-item dataField="itemId" [label]="{text: utilService.convert1('sales.item_cd','품목')}"
+                        [colSpan]="2"
+                        editorType="dxSelectBox" [editorOptions]="{
+                                      items: dsItemId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                      }">
+              </dxi-item>
+              <dxi-item dataField="spec"
+                        editorType="dxSelectBox" [colSpan]="2"
+                        [label]="{text: utilService.convert1('pt_prod_prog_status.spec', '규격')}"
+                        [editorOptions]="{  items: dsSpec,
+                                      displayExpr: 'spec',
+                                      valueExpr: 'spec',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"></dxi-item>
+            </dxi-item>
+
+          </dx-form>
+        </div>
+      </div>
+    </dxi-item>
+
+    <dxi-item [title]="utilService.convert('ptProdProgStatusList', '생산진도현황리스트')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="mainDataSource"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [allowColumnResizing]="true"
+        [columnAutoWidth]="true"
+        [focusedRowEnabled]="true"
+        (onFocusedCellChanged)="onFocusedCellChanging($event, this.mainGrid)"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [allowColumnReordering]="true"
+        [height]="256"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"
+                     [allowUpdating]="false"
+                     [selectTextOnEditStart]="true"
+        ></dxo-editing>
+        <dxo-selection mode="single" selectAllMode="allPages"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="item" width="150"
+                    [caption]="utilService.convert1('sales.item_cd', '품목')"></dxi-column>
+        <dxi-column dataField="itemName" width="250"
+                    [caption]="utilService.convert1('pt_prod_prog_status.itemName', '품목명')"></dxi-column>
+
+        <dxi-column dataField="unit" [caption]="utilService.convert1('pt_prod_prog_status.unit', '단위')"
+                    alignment="center" width="100"></dxi-column>
+        <dxi-column dataField="spec" [caption]="utilService.convert1('pt_prod_prog_status.spec', '규격')"
+                    width="150"></dxi-column>
+
+        <dxi-column [caption]="utilService.convert1('ptprodmattot_mattot', '재료비')">
+          <dxi-column dataField="currentMonthMatTot" width="150"
+                      [caption]="utilService.convert1('ptprodmattot.currentmonthMatTot', '당월')"
+                      format="#,##0.####" alignment="right"></dxi-column>
+          <dxi-column dataField="previousMonthMatTot" width="150"
+                      [caption]="utilService.convert1('ptprodmattot.previousmonthMatTot', '전월')"
+                      format="#,##0.####" alignment="right"></dxi-column>
+        </dxi-column>
+        <dxi-column dataField=""></dxi-column>
+
+        <!--        <dxi-column dataField="" [allowEditing]="false"></dxi-column>-->
+
+        <!--        <dxi-column dataField="remarks"-->
+        <!--                    [caption]="utilService.convert('remarks', '비고')"></dxi-column>-->
+        <!--        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"-->
+        <!--                    [allowEditing]="false"-->
+        <!--                    alignment="left" [visible]=this.utilService.isShowVisibleColumn>-->
+        <!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        <!--        </dxi-column>-->
+        <!--        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"-->
+        <!--                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>-->
+        <!--        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"-->
+        <!--                    [allowEditing]="false" alignment="left" [visible]=this.utilService.isShowVisibleColumn>-->
+        <!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        <!--        </dxi-column>-->
+        <!--        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"-->
+        <!--                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>-->
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

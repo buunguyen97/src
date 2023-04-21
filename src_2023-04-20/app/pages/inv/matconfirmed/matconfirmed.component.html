@@ -1,0 +1,680 @@
+<!-- 재고 > 생산실적 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/inv/matconfirmed')}}</h2> <!-- 다국어 -->
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group"></span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="4"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                      lg:8, md: 8, sm:4, xs:2
+                   }"
+      >
+        <dxi-item itemType="group" [colCount]="8" [colSpan]="8">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+
+          <dxi-item dataField="adjustKey" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_matinstruct_adjustkey', '지시키')}">
+          </dxi-item>
+
+          <dxi-item itemType="group" [label]="{text: utilService.convert1('inv_matinstruct_adjustdate', '지시일자')}"
+                    cssClass="fromtocalendar" [colCount]="2" [colSpan]="2">
+            <dxi-item dataField="fromAdjustDate" editorType="dxDateBox"
+                      [label]="{visible: false}"
+                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">
+            </dxi-item>
+            <dxi-item dataField="toAdjustDate" editorType="dxDateBox"
+                      [label]="{text: '~'}"
+                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">
+            </dxi-item>
+          </dxi-item>
+          <dxi-item dataField="sts"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_matinstruct_sts', '상태')}"
+                    [editorOptions]="{  items: dsProdSts,
+                                            displayExpr: 'display',
+                                            valueExpr: 'code',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }">
+          </dxi-item>
+
+          <dxi-item dataField="itemId"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_matinstruct_itemId', '품목', 'Item')}"
+                    [editorOptions]="{
+                                      items: copyInstructItem,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                      }">
+          </dxi-item>
+
+          <dxi-item dataField="warehouseId"
+                    editorType="dxSelectBox"
+                    disabled="true" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_matinstruct_warehouseId', '창고')}"
+                    [editorOptions]="{  items: dsWarehouse,
+                                            displayExpr: 'display',
+                                            valueExpr: 'uid'
+                                        }">
+          </dxi-item>
+
+          <dxi-item dataField="ownerId"
+                    editorType="dxSelectBox"
+                    disabled="true" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_matinstruct_ownerId', '화주')}"
+                    [editorOptions]="{ items: dsOwner,
+                                           displayExpr: 'display',
+                                           valueExpr: 'uid'
+                                        }">
+          </dxi-item>
+          <dxi-item dataField="itemAdminId"
+                    [label]="{text: utilService.convert1('so_arrangetruck_itemAdminId', '품목관리사')}"
+                    editorType="dxSelectBox" [colSpan]="2" [disabled]="true"
+                    [editorOptions]="{
+                                      items: dsItemAdmin,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid'
+                                      }"></dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   class="reset-btn"
+                   [text]="utilService.convert('com_btn_reset')"
+                   (onClick)="onReset()">
+        </dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+      <div class="foldable-btn">
+        <dx-button #foldableBtn type="default"
+                   (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+      </div>
+    </div>
+  </div>
+
+  <!--Grid-->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('inv_matinstruct_mainGridTitle', '작업지시 리스트')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainDataSource"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    (onRowDblClick)="onPopupOpen($event)"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [showRowLines]="true"
+                    [rowAlternationEnabled]="true"
+                    [allowColumnReordering]="true"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true"
+                           type="custom"
+                           [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain">
+        </dxo-state-storing>
+        <!-- Columns -->
+        <dxi-column dataField="uid" caption="UID"
+                    [visible]="false" [allowSearch]="false" [showInColumnChooser]="false">
+        </dxi-column>
+        <dxi-column dataField="tenant" caption="Tenant"
+                    [visible]="false" [allowSearch]="false" [showInColumnChooser]="false">
+        </dxi-column>
+        <!-- Entity의 Key 값 -->
+        <dxi-column dataField="adjustDate"
+                    editorType="dxDateBox" alignment="center"
+                    [caption]="utilService.convert('inv_matinstruct_adjustdate')"
+                    [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">
+        </dxi-column>
+
+        <dxi-column dataField="adjustKey" alignment="center" [visible]="false"
+                    [caption]="utilService.convert('inv_matinstruct_adjustkey')"
+                    [visible]="false" [allowSearch]="false" [showInColumnChooser]="false">
+        </dxi-column>
+
+        <dxi-column dataField="otherRefNo1" alignment="center"
+                    [caption]="utilService.convert('inv_matinstruct_adjustkey')">
+        </dxi-column>
+
+        <dxi-column dataField="otherRefNo2" alignment="center"
+                    [caption]="utilService.convert1('inv_matinstruct_otherRefNo2', '재지시')">
+        </dxi-column>
+
+        <dxi-column dataField="itemAdminId" [visible]="false"
+                    [caption]="utilService.convert1('inv_matinstruct_itemAdminId', '품목관리사')">
+          <dxo-lookup [dataSource]="dsItemAdmin"
+                      displayExpr="display"
+                      valueExpr="uid">
+          </dxo-lookup>
+        </dxi-column>
+
+        <dxi-column dataField="itemId" [caption]="utilService.convert('inv_matinstruct_itemId')">
+          <dxo-lookup [dataSource]="dsItem"
+                      displayExpr="display"
+                      valueExpr="uid">
+          </dxo-lookup>
+        </dxi-column>
+
+        <dxi-column dataField="sts" [caption]="utilService.convert('inv_matinstruct_sts')" alignment="center">
+          <dxo-lookup [dataSource]=dsProdSts displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+
+        <dxi-column dataField="expectQty1" format="#,##0.####"
+                    [caption]="utilService.convert('inv_matinstruct_expectQty1')">
+        </dxi-column>
+        <dxi-column dataField="adjustQty1" format="#,##0.####"
+                    [caption]="utilService.convert('inv_matinstruct_adjustQty1')">
+        </dxi-column>
+        <dxo-summary>
+          <dxi-total-item column="expectQty1"
+                          summaryType="sum"
+                          valueFormat="#,##0.####"
+                          displayFormat="{0}">
+          </dxi-total-item>
+          <dxi-total-item column="adjustQty1"
+                          summaryType="sum"
+                          valueFormat="#,##0.####"
+                          displayFormat="{0}">
+          </dxi-total-item>
+        </dxo-summary>
+        <dxi-column dataField="remarks" [caption]="utilService.convert('com_text_remarks')"></dxi-column>
+
+        <dxi-column dataField="createdBy" alignment="left"
+                    [caption]="utilService.convert('com_text_createdBy')"
+                    [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime"
+                    [caption]="utilService.convert('com_text_createdDatetime')"
+                    [visible]=this.utilService.isShowVisibleColumn>
+        </dxi-column>
+        <dxi-column dataField="modifiedBy" alignment="left"
+                    [caption]="utilService.convert('com_text_modifiedBy')"
+                    [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime"
+                    [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [visible]=this.utilService.isShowVisibleColumn>
+        </dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+<!-- Grid popup-->
+<dx-popup #popup
+          [(title)]="popupMode"
+          [dragEnabled]="true"
+          [resizeEnabled]="true"
+          (onShown)="popupShown()"
+          (onHiding)="onPopupAfterClose()"
+>
+  <dxi-toolbar-item widget="dxButton"
+                    location="after"
+                    toolbar="top">
+  </dxi-toolbar-item>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <dx-button type="normal"
+               [text]="utilService.convert('com_btn_close')"
+               (onClick)="onPopupClose()">
+    </dx-button>
+  </dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupFormData"
+             [showColonAfterLabel]="false"
+             [colCountByScreen]="{
+                  lg:4, md: 4, sm:2, xs:2
+               }"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group" [caption]="utilService.convert1('inv_matinstruct_matinfo', '작업정보')" [colCount]="4"
+                [colSpan]="4">
+        <dxi-item dataField="uid" [visible]="false"></dxi-item>
+        <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                  [editorOptions]="{ value: G_TENANT }"></dxi-item>
+
+        <dxi-item dataField="adjustKey" disabled="true"
+                  [label]="{text: utilService.convert('inv_matinstruct_adjustkey')}">
+        </dxi-item>
+
+        <dxi-item dataField="adjustDate" disabled="true" editorType="dxDateBox"
+                  [label]="{text: utilService.convert('inv_matinstruct_adjustdate')}"
+                  [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">
+        </dxi-item>
+
+        <dxi-item dataField="sts"
+                  disabled="true"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('inv_matinstruct_sts', '상태')}"
+                  [editorOptions]="{  items: dsProdSts,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }">
+        </dxi-item>
+        <dxi-item itemType="empty"></dxi-item>
+
+        <dxi-item dataField="itemAdminId" editorType="dxSelectBox" disabled="true"
+                  [label]="{text: utilService.convert1('inv_matinstruct_itemAdminId', '품목', 'Item')}"
+                  [editorOptions]="{  items: dsItemAdmin,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }">
+        </dxi-item>
+
+        <dxi-item dataField="itemId" editorType="dxSelectBox" disabled="true"
+                  [label]="{text: utilService.convert1('inv_matinstruct_itemId', '품목', 'Item')}"
+                  [editorOptions]="{  items: dsItem,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }">
+        </dxi-item>
+
+        <dxi-item dataField="isSerial" editorType="dxSelectBox" disabled="true"
+                  [label]="{text: utilService.convert1('inv_matinstruct_isSerial', '시리얼')}"
+                  [editorOptions]="{  items: dsYN,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"
+        >
+        </dxi-item>
+        <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+        <dxi-item dataField="expectQty1" editorType="dxNumberBox" disabled="true"
+                  [label]="{text: utilService.convert1('inv_matinstruct_expectQty1', '지시수량')}">
+        </dxi-item>
+
+        <dxi-item dataField="adjustQty1" editorType="dxNumberBox"
+                  [label]="{text: utilService.convert1('inv_matinstruct_adjustQty1', '실적수량')}"
+                  [editorOptions]="{onValueChanged: onValueChangedAdjustQty}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('inv_matinstruct_adjustQty1'))">
+          </dxi-validation-rule>
+          <dxi-validation-rule type="range" [min]="0"
+                               [message]="utilService.convert('so_valid_qtygt', utilService.convert('inv_matinstruct_adjustQty1'), '0')">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+
+        <dxi-item dataField="remarks" editorType="dxTextArea"
+                  [colSpan]="4" [label]="{text: utilService.convert('so_so_remarks')}">
+        </dxi-item>
+
+        <dxi-item dataField="warehouseId" [visible]="false"></dxi-item>
+        <dxi-item dataField="ownerId" [visible]="false"></dxi-item>
+        <dxi-item dataField="logisticsId" [visible]="false"></dxi-item>
+        <dxi-item dataField="companyId" [visible]="false"></dxi-item>
+
+        <dxi-item dataField="isProduct" [visible]="false"></dxi-item>
+        <dxi-item dataField="adjustType" [visible]="false"></dxi-item>
+        <dxi-item dataField="inoutDate" [visible]="false"></dxi-item>
+        <dxi-item dataField="adjustId" [visible]="false"></dxi-item>
+
+        <dxi-item dataField="otherRefNo1" [visible]="false"></dxi-item>
+        <dxi-item dataField="relocateId" [visible]="false"></dxi-item>
+      </dxi-item>
+
+      <!-- Detail Grid -->
+      <dxi-item itemType="group" [caption]="utilService.convert1('inv_matinstruct_popupGridTitle', '부자재 리스트')"
+                [colCount]="4" [colSpan]="4">
+        <dx-data-grid #popupGrid
+                      [dataSource]="popupDataSource"
+                      [showBorders]="true"
+                      [repaintChangesOnly]="true"
+                      [allowColumnResizing]="true"
+                      [columnAutoWidth]="true"
+                      [focusedRowEnabled]="true"
+                      [rowAlternationEnabled]="true"
+                      [showRowLines]="true"
+                      (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                      [allowColumnReordering]="true"
+                      [height]="350"
+                      (onExporting)="gridUtil.onPageExportXlsx($event)"
+                      columnResizingMode=nextColumn
+        >
+          <dxo-editing mode="batch"
+                       allowUpdating="true">
+          </dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+          <dxo-search-panel [visible]="true"
+                            [width]="240"
+                            [placeholder]="''">
+          </dxo-search-panel>
+          <dxo-paging [enabled]="false"></dxo-paging>
+          <dxo-group-panel [visible]="true"></dxo-group-panel>
+          <dxo-grouping [autoExpandAll]="true"></dxo-grouping>
+          <dxo-state-storing type="custom"
+                             [enabled]="true"
+                             [customLoad]="loadStatePopup"
+                             [customSave]="saveStatePopup">
+          </dxo-state-storing>
+
+          <!-- Columns -->
+          <dxi-column dataField="uid" caption="UID"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="tenant" caption="Tenant"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="display"
+                      [caption]="utilService.convert('inv_matinstruct_itemId')"
+                      [groupIndex]="0" [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="itemAdminId"
+                      [caption]="utilService.convert('inv_matinstruct_itemAdminId')"
+                      [visible]="false" [allowEditing]="false">
+            <dxo-lookup [dataSource]="dsItemAdmin"
+                        displayExpr="display"
+                        valueExpr="uid">
+            </dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="itemId"
+                      [caption]="utilService.convert('inv_matinstruct_itemId')"
+                      [allowEditing]="false">
+            <dxo-lookup [dataSource]="dsItem"
+                        displayExpr="display"
+                        valueExpr="uid">
+            </dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="unit" alignment="center"
+                      [caption]="utilService.convert1('inv_warehousemove_unit3Stylecd', '단위')"
+                      [allowEditing]="false">
+            <dxo-lookup [dataSource]="dsItem" displayExpr="unit3Stylecd" valueExpr="uid"></dxo-lookup>
+          </dxi-column>
+
+          <dxi-column dataField="lotId"
+                      [caption]="utilService.convert('so_so_lotId')"
+                      [visible]="false" [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="displayLotId" caption="DisplayLotId"
+                      [visible]="false" [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="locId"
+                      [caption]="utilService.convert('so_so_locId')"
+                      [visible]="false" [allowEditing]="false">
+          </dxi-column>
+
+          <dxi-column dataField="damageFlg" alignment="center"
+                      [caption]="utilService.convert('so_so_damageFlg')"
+                      [allowEditing]="false">
+            <dxo-lookup [dataSource]="dsDamageFlg" displayExpr="codeName" valueExpr="code"></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="whInDate"
+                      dataType="date" format="yyyy-MM-dd" alignment="center"
+                      [caption]="utilService.convert('so_so_whInDate', '입고일자', 'In Date')"
+                      [allowEditing]="false">
+          </dxi-column>
+
+          <dxi-column dataField="visibleQty" format="#,##0.####"
+                      [caption]="utilService.convert1('inv_matinstruct_qty1', '소요량')">
+          </dxi-column>
+          <dxi-column dataField="expectQty2" format="#,##0.####" dataType="number"
+                      [caption]="utilService.convert1('inv_matinstruct_errorQty', '불량수량')">
+          </dxi-column>
+
+          <dxi-column dataField="matLocQty" format="#,##0.####"
+                      [caption]="utilService.convert1('inv_matinstruct_matLocQty', '생산로케이션수량')"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="invQty" format="#,##0.####"
+                      [caption]="utilService.convert1('inv_matinstruct_invQty', '재고수량')"
+                      [allowEditing]="false">
+          </dxi-column>
+
+          <dxi-column dataField="expectQty1" format="#,##0.####"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="adjustQty1" format="#,##0.####"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="bomQty" format="#,##0.####"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="moveQty" format="#,##0.####"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+
+          <dxi-column dataField="moveFlg"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="invChkFlg"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+
+          <dxi-column dataField="otherRefNo1"
+                      [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column dataField="remarks"
+                      [caption]="utilService.convert('com_text_remarks')"></dxi-column>
+          <dxi-column type="buttons" [caption]="utilService.convert1('불량사유등록', '불량사유등록')"
+                      [allowEditing]="false">
+            <dxi-button template="getLinkTemplate"
+                        [hint]="utilService.convert1('불량사유등록', '불량사유등록')"
+                        [visible]="true">
+              <div *dxTemplate="let data of 'getLinkTemplate'" style="display:inline">
+                <dx-button (click)="onOpenDamageReason($event, data.key)"
+                           style="border: white; height: 16px; width: 100%;">
+                  <i class="dx-icon-warning" style="color: red; position: relative; top: -4px;"></i>
+                </dx-button>
+              </div>
+            </dxi-button>
+          </dxi-column>
+        </dx-data-grid>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>
+
+
+<!-- 불량사유-->
+<dx-popup
+  #damagePopup
+  [title]="utilService.convert1('불량사유등록', '불량사유등록')"
+  [closeOnOutsideClick]="false"
+  [dragEnabled]="true"
+  [resizeEnabled]="true"
+  [(visible)]="damageReasonVisible"
+  (onShown)="damagePopupShown($event)"
+  [width]="800"
+  [height]="600"
+>
+
+  <dxi-toolbar-item
+    #saveBtn
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_save'),
+      type: 'success',
+      onClick: damagePopupSaveClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_close'),
+      stylingMode: 'outlined',
+      type: 'normal',
+      onClick: damagePopupCancelClick
+    }"></dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #damagePopupForm
+             [(formData)]="damagePopupData"
+             [showColonAfterLabel]="false"
+             [colCountByScreen]="{
+                  lg:4, md: 4, sm:2, xs:2
+               }"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group" [caption]="utilService.convert1('품목정보', '품목정보')" [colCount]="4"
+                [colSpan]="4">
+        <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                  [editorOptions]="{ value: G_TENANT }"></dxi-item>
+        <dxi-item dataField="itemId" [disabled]="true" [visible]="false"></dxi-item>
+        <dxi-item dataField="adjustDetailId" [disabled]="true" [visible]="false"></dxi-item>
+
+        <dxi-item dataField="item" [label]="{text:utilService.convert1('품목', '품목')}" [colSpan]="2"
+                  [disabled]="true"></dxi-item>
+        <dxi-item dataField="name" [label]="{text:utilService.convert1('품명', '품명')}" [colSpan]="2"
+                  [disabled]="true"></dxi-item>
+        <dxi-item dataField="spec" [label]="{text:utilService.convert1('규격', '규격')}" [colSpan]="2"
+                  [disabled]="true"></dxi-item>
+      </dxi-item>
+      <dxi-item itemType="group" [caption]="utilService.convert1('불량사유 리스트', '불량사유 리스트')"
+                [colCount]="4" [colSpan]="4">
+        <dx-data-grid
+          #damageGrid
+          [dataSource]="damageDataSource"
+          (onToolbarPreparing)="gridUtil.onToolbarPreparingWithComBtn($event, this, this.addClick, this.deleteClick)"
+          [allowColumnResizing]="true"
+          [columnAutoWidth]="true"
+          [focusedRowEnabled]="true"
+          [allowColumnReordering]="true"
+          (onFocusedCellChanged)="onFocusedCellChanging($event, this.damageGrid)"
+          (onInitNewRow)="onInitNewRowDamage($event)"
+          [showRowLines]="true"
+          [height]="250"
+          (onExporting)="gridUtil.onPageExportXlsx($event)"
+          columnResizingMode=nextColumn
+        >
+          <dxo-editing mode="batch"
+                       [allowUpdating]="true"
+                       [(changes)]="changes"
+                       [selectTextOnEditStart]="true"
+                       [newRowPosition]="'last'"
+          ></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+          <dxo-search-panel
+            [visible]="true"
+            [width]="200"
+            [placeholder]="''"></dxo-search-panel>
+          <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+          <dxo-pager
+            [visible]="true"
+            [allowedPageSizes]=gridUtil.getAllowedPageSize()
+            [displayMode]="'full'"
+            [showPageSizeSelector]="true"
+            [showInfo]="true"
+            [showNavigationButtons]="true"
+          >
+          </dxo-pager>
+          <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStatePopup"
+                             [customSave]="saveStatePopup"></dxo-state-storing>
+          <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                      [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+          <dxi-column dataField="adjustDetailId" caption="adjustId" [visible]="false" [allowSearch]="false"
+                      [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+
+          <dxi-column dataField="reason" [caption]="utilService.convert1('불량사유코드', '불량사유코드')"
+                      cssClass="grid-cell-required" [setCellValue]="setReasonValue" [width]="90">
+            <dxo-lookup [dataSource]="dsDamageReason" displayExpr="display" valueExpr="code"></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="damageReason" [caption]="utilService.convert1('불량사유', '불량사유')"
+                      [allowEditing]="false">
+            <dxo-lookup [dataSource]="dsDamageReason" displayExpr="codeName" valueExpr="code"></dxo-lookup>
+          </dxi-column>
+          0
+          <dxi-column dataField="qty" [caption]="utilService.convert1('수량', '수량')" [width]="50"
+                      cssClass="grid-cell-required" dataType="number" format="#,##0.####"
+                      [editorOptions]="{format:'#,##0.####', step:0}"></dxi-column>
+          <dxi-column dataField="remakrs" [caption]="utilService.convert1('비고', '비고')"></dxi-column>
+        </dx-data-grid>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>

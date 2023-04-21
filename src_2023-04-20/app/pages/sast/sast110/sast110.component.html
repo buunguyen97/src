@@ -1,0 +1,381 @@
+<!-- 재고 > 수불현황 sast110 -->
+<div class="contents-header">
+  <!-- Header Title START -->
+  <h2 class="content-block page-title">{{utilService.convert('/sast/sast110')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group"></span>
+  <!-- Header Title END -->
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [colCountByScreen]="{lg:6, md: 6, sm:3, xs:1}"
+               (onEditorEnterKey)="onSearch()">
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item itemType="group" [label]="{text: utilService.convert1('sales.inOutYm', '수불년월')}"
+                    [colSpan]="2">
+            <dx-date-box #inOutYm
+                         name="inOutYm"
+                         [value]="now"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM"
+                         dateSerializationFormat="yyyy-MM"
+                         [calendarOptions]="{useMaskBehavior:'true', zoomLevel: 'year',  maxZoomLevel: 'year'}">
+            </dx-date-box>
+          </dxi-item>
+
+          <dxi-item dataField="whCd" [label]="{text: utilService.convert1('sales.sales_wh_cd', '창고', 'Warehouse')}"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsSaWhCd,
+                                        displayExpr: 'display',
+                                        valueExpr: 'cd',
+                                        searchMode:'contains',
+                                        searchEnabled: true,
+                                        showClearButton: true,
+                                        openOnFieldClick: true,
+                                        minSearchLength: 0,
+                                        placeholder: '',
+                                        noDataText: utilService.convert('com_txt_noDataText')
+                    }">
+          </dxi-item>
+          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="itemCd" [label]="{text: utilService.convert1('sales.item', '품목', 'Item')}"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsItemCd,
+                                        displayExpr: 'display',
+                                        valueExpr: 'cd',
+                                        searchMode:'contains',
+                                        searchEnabled: true,
+                                        showClearButton: true,
+                                        openOnFieldClick: true,
+                                        minSearchLength: 0,
+                                        placeholder: '',
+                                        noDataText: utilService.convert('com_txt_noDataText')
+                    }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()">
+        </dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+    </div>
+  </div>
+
+  <dx-accordion [collapsible]="true"
+                [multiple]="false"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('sales.mat_list', '수불 리스트', 'In Out List')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="dataSource"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    [showRowLines]="true"
+                    [rowAlternationEnabled]="true"
+                    [columnAutoWidth]="true"
+                    [allowColumnResizing]="true"
+                    [focusedRowEnabled]="true"
+                    (onOptionChanged)="onOptionChanged($event)"
+                    columnResizingMode=nextColumn>
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true"></dxo-export>
+
+        <dxo-filter-row [visible]="true"></dxo-filter-row>
+        <dxo-group-panel [visible]="true"></dxo-group-panel>
+        <dxo-grouping [autoExpandAll]="true"></dxo-grouping>
+
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="cust_gb" [caption]="utilService.convert1('sales.cust_cla', '거래처구분', 'Customer Classification')"
+                    alignment="center">
+          <dxo-lookup [dataSource]=dsCustGb displayExpr="nm" valueExpr="cd"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="ptrn_cd"
+                    [caption]="utilService.convert('sales.cust_cd')"></dxi-column>
+        <dxi-column dataField="ptrn_nm" [caption]="utilService.convert('sales.cust_nm')">
+        </dxi-column>
+        <dxi-column dataField="wh_cd" [caption]="utilService.convert('sales.sales_wh_cd')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="wh_nm"
+                    [caption]="utilService.convert('sales.sales_wh_nm')"></dxi-column>
+        <dxi-column dataField="item_cd"
+                    [caption]="utilService.convert1('sales.item_cd', '품목', 'Item Code')"></dxi-column>
+        <dxi-column dataField="item_nm"
+                    [caption]="utilService.convert1('sales.item_nm', '품목명', 'Item Name')"></dxi-column>
+
+        <dxi-column dataField="damageflg" alignment="center"
+                    [caption]="utilService.convert1('rcvDetail.damageFlg', '불량여부', 'Damage Flag')">
+        </dxi-column>
+        <dxi-column dataField="owner"
+                    [caption]="utilService.convert1('inv_invTagWh_ownerId', '화주')">
+        </dxi-column>
+        <dxi-column dataField="itemcategory1id" [caption]="utilService.convert1('품목카테고리1', '품목카테고리1')"
+                    alignment="center">
+<!--          <dxo-lookup [dataSource]=dsItemCategory1Id displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="itemcategory1_name" [caption]="utilService.convert1('품목카테고리1', '품목카테고리1')"
+                    alignment="center">
+<!--          <dxo-lookup [dataSource]=dsItemCategory1Id displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="itemcategory2id" [caption]="utilService.convert1('품목카테고리2', '품목카테고리2')"
+                    alignment="center">
+<!--          <dxo-lookup [dataSource]=dsItemCategory2Id displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="itemcategory2_name" [caption]="utilService.convert1('품목카테고리2', '품목카테고리1')"
+                    alignment="center">
+<!--          <dxo-lookup [dataSource]=dsItemCategory1Id displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="itemcategory3id" [caption]="utilService.convert1('품목카테고리3', '품목카테고리3')"
+                    alignment="center">
+<!--          <dxo-lookup [dataSource]=dsItemCategory3Id displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="itemcategory3_name" [caption]="utilService.convert1('품목카테고리3', '품목카테고리1')"
+                    alignment="center">
+<!--          <dxo-lookup [dataSource]=dsItemCategory1Id displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="avg_pr" [caption]="utilService.convert1('sales.avg_pr', '평균단가', 'Average Price')"
+                    format="#,##0.####"></dxi-column>
+
+        <dxi-column dataField="init_qty"
+                    [caption]="utilService.convert1('sales.init_qty', '기초재고')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="prod_in_qty"
+                    [caption]="utilService.convert1('sales.prod_in_qty', '생산입고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="prod_out_qty"
+                    [caption]="utilService.convert1('sales.prod_out_qty', '생산출고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="pur_qty" [caption]="utilService.convert1('sales.pur_qty', '매입수량', 'Purchase Qty')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="pur_amt" [caption]="utilService.convert1('sales.pur_amt', '매입금액', 'Purchase Qty')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="pur_rtn_qty" [caption]="utilService.convert1('sales.sast110_pur_rtn_qty', '매입반품수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="pur_rtn_amt" [caption]="utilService.convert1('sales.pur_rtn_amt', '매입반품금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="adj_inp" [caption]="utilService.convert1('sales.adj_inp', '조정입고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="adj_inp_amt" [caption]="utilService.convert1('sales.adj_inp_amt', '조정입고금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="adj_out" [caption]="utilService.convert1('sales.adj_out', '조정출고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="adj_amt" [caption]="utilService.convert1('sales.adj_amt', '조정출고금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="sale_out" [caption]="utilService.convert1('sales.sale_out', '판매수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="sale_out_amt" [caption]="utilService.convert1('sales.sale_out_amt', '판매금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="rental_out" [caption]="utilService.convert1('sales.rental_out', '렌탈수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="rental_out_amt" [caption]="utilService.convert1('sales.rental_out_amt', '렌탈금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="etc_out" [caption]="utilService.convert1('sales.etc_out', '타계정주문수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="etc_out_amt" [caption]="utilService.convert1('sales.etc_out_amt', '타계정주문금액')"
+                    format="#,##0.####"></dxi-column>
+
+
+        <dxi-column dataField="sale_out_r" [caption]="utilService.convert1('sales.sale_out_r', '판매반품수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="sale_out_r_amt" [caption]="utilService.convert1('sales.sale_out_r_amt', '판매반품금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="rental_out_r" [caption]="utilService.convert1('sales.rental_out_r', '렌탈반품수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="rental_out_r_amt" [caption]="utilService.convert1('sales.rental_out_r_amt', '렌탈반품금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="etc_out_r" [caption]="utilService.convert1('sales.etc_out_r', '타계정반품수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="etc_out_r_amt" [caption]="utilService.convert1('sales.etc_out_r_amt', '타계정반품금액')"
+                    format="#,##0.####"></dxi-column>
+
+        <dxi-column dataField="rental_in" [caption]="utilService.convert1('sales.rental_in', '수출사렌탈입고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="rental_in_amt" [caption]="utilService.convert1('sales.rental_in_amt', '수출사렌탈입고금액')"
+                    format="#,##0.####"></dxi-column>
+
+        <dxi-column dataField="invoice_in" [caption]="utilService.convert1('sales.invoice_in', '수입사입고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="invoice_in_amt" [caption]="utilService.convert1('sales.invoice_in_amt', '수입사입고금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="invoice_out" [caption]="utilService.convert1('sales.invoice_out', '수출사출고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="invoice_out_amt" [caption]="utilService.convert1('sales.invoice_out_amt', '수출사출고금액')"
+                    format="#,##0.####"></dxi-column>
+
+        <dxi-column dataField="rental_return_in" [caption]="utilService.convert1('sales.rental_return_in', '회수수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="rental_return_in_amt" [caption]="utilService.convert1('sales.rental_return_in_amt', '회수금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="mv_in" [caption]="utilService.convert1('sales.mv_in', '창고입고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="mv_in_amt" [caption]="utilService.convert1('sales.mv_in_amt', '창고입고금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="mv_out" [caption]="utilService.convert1('sales.mv_out', '창고출고수량')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="mv_out_amt" [caption]="utilService.convert1('sales.mv_out_amt', '창고출고금액')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="last_qty" [caption]="utilService.convert1('sales.last_qty', '기말재고')"
+                    format="#,##0.####"></dxi-column>
+
+        <dxo-summary [calculateCustomSummary]="calculateCustomSummary">
+          <dxi-total-item showInColumn="init_qty" name="init_qty" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="prod_in_qty" name="prod_in_qty" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="prod_out_qty" name="prod_out_qty" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="pur_qty" name="pur_qty" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="pur_amt" name="pur_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="pur_rtn_qty" name="pur_rtn_qty" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="pur_rtn_amt" name="pur_rtn_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="adj_inp" name="adj_inp" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="adj_inp_amt" name="adj_inp_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="adj_out" name="adj_out" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="adj_amt" name="adj_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+
+          <dxi-total-item showInColumn="sale_out" name="sale_out" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="sale_out_amt" name="sale_out_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="rental_out" name="rental_out" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="rental_out_amt" name="rental_out_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="etc_out" name="etc_out" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="etc_out_amt" name="etc_out_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="sale_out_r" name="sale_out_r" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="sale_out_r_amt" name="sale_out_r_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="rental_out_r" name="rental_out_r" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="rental_out_r_amt" name="rental_out_r_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="etc_out_r" name="etc_out_r" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+
+          <dxi-total-item showInColumn="etc_out_r_amt" name="etc_out_r_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="rental_in" name="rental_in" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="rental_in_amt" name="rental_in_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="invoice_in" name="invoice_in" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="invoice_in_amt" name="invoice_in_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="invoice_out" name="invoice_out" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="invoice_out_amt" name="invoice_out_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="rental_return_in" name="rental_return_in" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="rental_return_in_amt" name="rental_return_in_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="mv_in" name="mv_in" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="mv_in_amt" name="mv_in_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+
+          <dxi-total-item showInColumn="mv_out" name="mv_out" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="mv_out_amt" name="mv_out_amt" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item showInColumn="last_qty" name="last_qty" summaryType="custom" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+        </dxo-summary>
+
+<!--        <dxi-column dataField="prod_in_qty"-->
+<!--                    [caption]="utilService.convert1('sales.pre_sto_qty', '전월재고수량', 'Previous Stock Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="pre_sto_qty"-->
+<!--                    [caption]="utilService.convert1('sales.pre_sto_qty', '전월재고수량', 'Previous Stock Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="rent_inp_qty"-->
+<!--                    [caption]="utilService.convert1('sales.rnt_i_qty', '렌탈입고수량', 'Rental Receive Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="mov_inp_qty"-->
+<!--                    [caption]="utilService.convert1('sales.mov_i_qty', '이동입고수량', 'Move Receive Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="sale_out_qty"-->
+<!--                    [caption]="utilService.convert1('sales.sale_out_qty', '판매출고수량', 'Sale Out Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="rent_out_qty"-->
+<!--                    [caption]="utilService.convert1('sales.rnt_o_qty', '렌탈출고수량', 'Rental Out Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="mov_out_qty"-->
+<!--                    [caption]="utilService.convert1('sales.mov_o_qty', '이동출고수량', 'Move Out Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="sample_out_qty"-->
+<!--                    [caption]="utilService.convert1('sales.smp_o_qty', '타계정출고수량', 'Sample Out Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="sto_reg_qty"-->
+<!--                    [caption]="utilService.convert1('sales.sto_reg_qty', '재고등록수량', 'Stock Reg Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="sto_qty"-->
+<!--                    [caption]="utilService.convert1('sales.wh_cur_qty', '현재고수량', 'Warehouse Current Qty')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+<!--        <dxi-column dataField="sto_amt"-->
+<!--                    [caption]="utilService.convert1('sales.wh_cur_amt', '현재고금액', 'Warehouse Current Amt')"-->
+<!--                    format="#,##0.####"></dxi-column>-->
+
+<!--        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')" [visible]="false">-->
+<!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+<!--        </dxi-column>-->
+<!--        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"-->
+<!--                    [visible]="false"></dxi-column>-->
+<!--        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')" [visible]="false">-->
+<!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+<!--        </dxi-column>-->
+<!--        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"-->
+<!--                    [visible]="false"></dxi-column>-->
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

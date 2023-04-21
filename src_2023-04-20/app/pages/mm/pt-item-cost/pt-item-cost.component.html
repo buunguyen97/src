@@ -1,0 +1,186 @@
+<!-- 생산 > 비용배부 관리 -->
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert1('/pp/ptcostallocate', '비용배부 관리')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+     <dx-button icon="add"
+                id="Open"
+                type="default"
+                [text]="utilService.convert1('ptcostallocate_button','처리')"
+                (onClick)="procItemCost($event)">
+     </dx-button>
+  </span>
+</div>
+
+<!-- TAB1-->
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [showColonAfterLabel]="false"
+               [minColWidth]="300"
+               [colCount]="3"
+               [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }">
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant"
+                    [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }">
+          </dxi-item>
+          <dxi-item itemType="group" [label]="{text: utilService.convert1('mm_costallocate_costYm', '생산년월')}"
+                    [colSpan]="2">
+            <dx-date-box #mainCostYm
+                         name="costYm"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM"
+                         dateSerializationFormat="yyyy-MM"
+                         [value]="now"
+                         [calendarOptions]="{useMaskBehavior:'true', zoomLevel: 'year',  maxZoomLevel: 'year'}">
+            </dx-date-box>
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   class="search-btn"
+                   [text]="utilService.convert('com_btn_search')"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)">
+      </dx-button>
+    </div>
+  </div>
+
+  <!--Grid-->
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('mm_costallocate_searchbox2','비용배부')">
+      <div class="search_foldable">
+        <div class="search-box">
+          <dx-form #subForm
+                   [(formData)]="subFormData"
+                   [showColonAfterLabel]="false"
+                   [minColWidth]="300"
+                   [colCount]="3"
+                   [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+          >
+            <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+              <dxi-item dataField="tenant"
+                        [label]="{text: 'Tenant'}" [visible]="false"
+                        [editorOptions]="{ value: G_TENANT }">
+              </dxi-item>
+              <dxi-item itemType="group" [label]="{text: utilService.convert1('mm_costallocate_reqYm', '배부년월')}"
+                        [colSpan]="2">
+                <dx-date-box #subCostYm
+                             name="reqDate"
+                             type="date"
+                             pickerType="calendar"
+                             displayFormat="yyyy-MM"
+                             dateSerializationFormat="yyyy-MM"
+                             [value]="now"
+                             [calendarOptions]="{zoomLevel: 'year', minZoomLevel: 'year', maxZoomLevel: 'year'}">
+                </dx-date-box>
+              </dxi-item>
+              <dxi-item itemType="empty" [colSpan]="4"></dxi-item>
+              <dxi-item dataField="soKey" [disabled]="true"
+                        [label]="{text: utilService.convert1('mm_costallocate_tot', '총 생산 실적')}"
+                        [colSpan]="2">
+              </dxi-item>
+
+              <dxi-item dataField="amt" [disabled]="true"
+                        [label]="{text: utilService.convert1('mm_costallocate_laborCost', '노무비')}"
+                        [colSpan]="2">
+              </dxi-item>
+              <!--              <dxi-item deletePtProdReldataField="amt" [disabled]="true"-->
+              <!--                        [label]="{text: utilService.convert1('mm_costallocate_laborCost', '노무비')}"-->
+              <!--                        [colSpan]="2">-->
+              <!--              </dxi-item>-->
+              <dxi-item dataField="soKey" [disabled]="true"
+                        [label]="{text: utilService.convert1('mm_costallocate_budget', '경비')}"
+                        [colSpan]="2">
+              </dxi-item>
+            </dxi-item>
+          </dx-form>
+        </div>
+      </div>
+    </dxi-item>
+
+    <dxi-item [title]="utilService.convert1('ptCostallocateList', '비용배부관리 리스트')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainDataSource"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [showRowLines]="true"
+                    [allowColumnReordering]="true"
+                    [height]="256"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"
+                     [allowUpdating]="false"
+                     [selectTextOnEditStart]="true">
+        </dxo-editing>
+        <dxo-selection mode="single" selectAllMode="allPages"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true"
+                           type="custom"
+                           [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain">
+        </dxo-state-storing>
+
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false">
+        </dxi-column>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false">
+        </dxi-column>
+
+        <dxi-column dataField="costGb" width="200"
+                    [caption]="utilService.convert1('prodcost_costGb', '비용구분')">
+          <dxo-lookup [dataSource]="dsCostGb" displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="totProdQty" format="#,##0.####" width="200"
+                    [caption]="utilService.convert1('mm_costallocate_totProdQty', '총실적수량')">
+        </dxi-column>
+        <dxi-column dataField="totAmt" format="#,##0.####" width="200"
+                    [caption]="utilService.convert1('mm_costallocate_totCost', '총금액')">
+        </dxi-column>
+        <dxi-column dataField="unitCost" format="#,##0.####" width="200"
+                    [caption]="utilService.convert1('mm_costallocate_unitCost', '단위당 비용')">
+        </dxi-column>
+        <dxi-column dataField="" [allowEditing]="false"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

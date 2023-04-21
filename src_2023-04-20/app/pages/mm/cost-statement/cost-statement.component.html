@@ -1,0 +1,198 @@
+<!-- 생산 > 원가명세서 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert1('/pp/coststatement', '원가명세서')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+<!--     <dx-button-->
+    <!--       icon="add"-->
+    <!--       id="Open"-->
+    <!--       type="default"-->
+    <!--       [text]="utilService.convert1('ptprodmattot_button','산정')"-->
+    <!--       (onClick)="onProdMatTot($event)"-->
+    <!--     ></dx-button>-->
+  </span>
+</div>
+
+<!-- TAB1-->
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item itemType="group" [label]="{text: utilService.convert1('coststatus_costYm', '원가년월')}" [colSpan]="2">
+            <dx-date-box #mainCostYm
+                         name="costYm"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM"
+                         dateSerializationFormat="yyyy-MM"
+                         [value]="now"
+                         [calendarOptions]="{useMaskBehavior:'true', zoomLevel: 'year',  maxZoomLevel: 'year'}">
+
+              >
+            </dx-date-box>
+          </dxi-item>
+
+          <dxi-item dataField="itemId" [label]="{text: utilService.convert('sales.item_cd')}"
+                    [colSpan]="2"
+                    editorType="dxSelectBox" [editorOptions]="{
+                                      items: dsItemId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                      }">
+          </dxi-item>
+
+          <dxi-item dataField="spec"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [label]="{text: utilService.convert1('pt_prod_prog_status.spec', '규격')}"
+                    [editorOptions]="{  items: dsSpec,
+                                      displayExpr: 'spec',
+                                      valueExpr: 'spec',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"></dxi-item>
+
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <!--Grid-->
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+
+    <dxi-item [title]="utilService.convert('/pp/coststatement', '제조원가명세서')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="mainDataSource"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [allowColumnResizing]="true"
+        [columnAutoWidth]="true"
+        [focusedRowEnabled]="true"
+        (onFocusedCellChanged)="onFocusedCellChanging($event, this.mainGrid)"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [allowColumnReordering]="true"
+        [height]="256"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"
+                     [allowUpdating]="false"
+                     [selectTextOnEditStart]="true"
+        ></dxo-editing>
+        <dxo-selection mode="single" selectAllMode="allPages"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="item" width="150"
+                    [caption]="utilService.convert1('sales.item_cd', '품목')" alignment="left"></dxi-column>
+        <dxi-column dataField="itemName" width="250"
+                    [caption]="utilService.convert1('coststatement_itemName', '품목명')"></dxi-column>
+
+        <dxi-column dataField="unit" width="100"
+                    [caption]="utilService.convert1('bomadmin_unit', '단위')" [allowEditing]="false" alignment="center">
+          <dxo-lookup [dataSource]="dsUnitStyle" displayExpr="code" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="spec" width="150"
+                    [caption]="utilService.convert1('bomadmin_spec', '규격')" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="prodQty" width="150"
+                    [caption]="utilService.convert1('costStatement.prodQty', '총생산실적')"></dxi-column>
+        <dxi-column dataField="unitMat" [caption]="utilService.convert1('coststatus_unitMat', '재료비')"
+                    format="#,##0.####" alignment="right" [visible]="false" width="150"></dxi-column>
+        <dxi-column dataField="unitSaly" [caption]="utilService.convert1('coststatus_unitSaly', '노무비')"
+                    format="#,##0.####" alignment="right" width="150"></dxi-column>
+        <dxi-column dataField="unitAmt" alignment="right" width="150"
+                    [caption]="utilService.convert1('coststatus_unitAmt', '경비')" format="#,##0.####">
+        </dxi-column>
+        <dxi-column dataField="unitAmt1" alignment="right" [visible]="false"
+                    [caption]="utilService.convert1('coststatus_unitAmt1', '기타경비1')" format="#,##0.####">
+        </dxi-column>
+        <dxi-column dataField="unitAmt2" alignment="right" [visible]="false"
+                    [caption]="utilService.convert1('coststatus_unitAmt2', '기타경비2')" format="#,##0.####">
+        </dxi-column>
+        <dxi-column dataField="unitAmt3" alignment="right" [visible]="false"
+                    [caption]="utilService.convert1('coststatus_unitAmt3', '기타경비3')" format="#,##0.####">
+        </dxi-column>
+        <dxi-column dataField="matCost" [caption]="utilService.convert1('coststatement_matCost', '단위원가')"
+                    format="#,##0.####" width="150">
+        </dxi-column>
+        <dxi-column dataField="" [allowEditing]="false"></dxi-column>
+
+        <!--        <dxi-column dataField="remarks"-->
+        <!--                    [caption]="utilService.convert('remarks', '비고')"></dxi-column>-->
+        <!--        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"-->
+        <!--                    [allowEditing]="false" [visible]="false">-->
+        <!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        <!--        </dxi-column>-->
+        <!--        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"-->
+        <!--                    [allowEditing]="false" [visible]="false"></dxi-column>-->
+        <!--        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"-->
+        <!--                    [allowEditing]="false" [visible]="false">-->
+        <!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+        <!--        </dxi-column>-->
+        <!--        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"-->
+        <!--                    [allowEditing]="false" [visible]="false"></dxi-column>-->
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

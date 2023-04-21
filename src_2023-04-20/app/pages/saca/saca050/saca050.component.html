@@ -1,0 +1,154 @@
+<!-- 청구 > 세금계산서발행현황 -->
+<div class="contents-header">
+  <!-- Header Title START -->
+  <h2 class="content-block page-title">{{utilService.convert('/saca/saca050')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <!-- Header Title END -->
+  <!-- 버튼 그룹 START (조회 버튼 제외 - 조회버튼은 조회영역에 삽입) -->
+  <span class="btngroup page-button-group">
+    <!-- ...추가 버튼들 -->
+  </span>
+  <!-- 버튼 그룹 END -->
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               (onEditorEnterKey)="onSearch()"
+               [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+
+          <dxi-item itemType="group" [label]="{text: utilService.convert1('saca050.cls_mon', '정산년월')}" [colSpan]="2">
+            <dx-date-box #clsMon
+                         name="clsMon"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM"
+                         dateSerializationFormat="yyyy-MM"
+                         [value]="thisMonth"
+                         [calendarOptions]="{useMaskBehavior:'true', zoomLevel: 'year',  maxZoomLevel: 'year'}">
+              <dx-validator>
+                <dxi-validation-rule type="required"
+                                     [message]="utilService.convert('com_valid_required', utilService.convert('sales.cls_mon'))"></dxi-validation-rule>
+              </dx-validator>
+            </dx-date-box>
+          </dxi-item>
+
+          <dxi-item dataField="invoice_cls_yn"
+                    editorType="dxSelectBox"
+                    [colSpan]="2"
+                    [label]="{text: utilService.convert1('saca050.invoice_cls_yn', '발행여부')}"
+                    [editorOptions]="{  items: dsInvoiceClsYn
+                                  , displayExpr: 'codeName'
+                                  , valueExpr: 'code'
+                                  , searchMode:'contains'
+                                  , searchEnabled: true
+                                  , showClearButton: true
+                                  , openOnFieldClick: false
+                                  , placeholder:''
+                                  , noDataText: utilService.convert('com_txt_noDataText')
+                                 }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <!--        <dx-button icon="check"-->
+        <!--                   type="default"-->
+        <!--                   [text]="utilService.convert('com_btn_reset')"-->
+        <!--                   class="reset-btn"-->
+        <!--                   (onClick)="onReset()"-->
+        <!--        ></dx-button>-->
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <dx-accordion [collapsible]="true"
+                [multiple]="false"
+                [animationDuration]="300"
+  >
+    <dxi-item [title]="utilService.convert1('saca050.mainGrid', '세금계산서발행현황 리스트')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="dataSource"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        (onFocusedCellChanged)="onFocusedCellChanging($event, this.mainGrid)"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [allowColumnReordering]="true"
+        [columnAutoWidth]="true"
+        [allowColumnResizing]="true"
+        [focusedRowEnabled]="true"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column dataField="vcls_mon" [caption]="utilService.convert('saca050.cls_mon')" alignment="center"
+                    [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="claim_no" [caption]="utilService.convert1('sales.claim_no', '청구번호', 'Claim No')"
+                    [allowEditing]="false" alignment="center"></dxi-column>
+        <dxi-column dataField="wrk_dt" dataType="date" format="yyyy-MM-dd"
+                    [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd' }"
+                    [caption]="utilService.convert1('sales.wrk_dt', '작성일자', 'Date of issue')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="invoice_type" [caption]="utilService.convert('sales.invoice_type')" alignment="center">
+          <dxo-lookup [dataSource]=dsInvoiceType displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="item_nm" [caption]="utilService.convert1('saca050.item_nm', '품목(적요)')"></dxi-column>
+        <dxi-column dataField="sale_amt" format="#,##0.####"
+                    [caption]="utilService.convert1('saca050.sale_amt', '공급가액')"></dxi-column>
+        <dxi-column dataField="sale_vat_amt" format="#,##0.####"
+                    [caption]="utilService.convert1('saca050.sale_vat_amt', '세액')"></dxi-column>
+        <dxi-column dataField="tot_sale_amt" format="#,##0.####"
+                    [caption]="utilService.convert1('saca050.tot_sale_amt', '합계액')"></dxi-column>
+        <dxi-column dataField="invoice_cls_yn" [caption]="utilService.convert1('saca050.invoice_cls_yn', '발행여부')"
+                    alignment="center">
+          <dxo-lookup [dataSource]=dsInvoiceClsYn displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="invoice_appr_no" [caption]="utilService.convert1('sales.invoice_appr_no', '승인번호', 'Tax Invoice Approval Number')"
+                    alignment="center"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

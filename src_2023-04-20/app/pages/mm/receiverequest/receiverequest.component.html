@@ -1,0 +1,164 @@
+<div class="report_wrapper">
+
+  <div class="title_div" style="margin-left: 10%;">
+    <h2>회수요청서</h2>
+    <h3>{{this.form1Data.supplierName}}</h3>
+  </div>
+
+  <!--  <div class="title_div title_table" style="float: right">-->
+  <!--    <dx-form #formTable-->
+  <!--             [minColWidth]="300"-->
+  <!--             readOnly="true"-->
+  <!--    >-->
+  <!--      <dxi-item itemType="simple">-->
+  <!--        <table>-->
+  <!--          <tbody>-->
+  <!--          <tr>-->
+  <!--            <td rowspan="4">공<br/>급<br/>자</td>-->
+  <!--            <td>일련번호</td>-->
+  <!--            <td>{{formTableData.d1}}</td>-->
+  <!--            <td>TEL</td>-->
+  <!--            <td>{{formTableData.d2}}</td>-->
+  <!--          </tr>-->
+  <!--          <tr>-->
+  <!--            <td>사업자<br/>등록번호</td>-->
+  <!--            <td>{{formTableData.d3}}</td>-->
+  <!--            <td>성명</td>-->
+  <!--            <td>{{formTableData.d4}}</td>-->
+  <!--          </tr>-->
+  <!--          <tr>-->
+  <!--            <td>상호</td>-->
+  <!--            <td colspan="3">{{formTableData.d5}}</td>-->
+  <!--          </tr>-->
+  <!--          <tr>-->
+  <!--            <td>주소</td>-->
+  <!--            <td colspan="3">{{formTableData.d6}}</td>-->
+  <!--          </tr>-->
+  <!--          </tbody>-->
+  <!--        </table>-->
+  <!--      </dxi-item>-->
+  <!--    </dx-form>-->
+  <!--  </div>-->
+  <hr/>
+
+  <dx-form #form1
+           [(formData)]="form1Data"
+           labelLocation="left"
+           [minColWidth]="300"
+           [colCount]="4"
+           readOnly="true"
+           [colCountByScreen]="{
+                        lg:4, md: 4, sm:4, xs:4
+                     }"
+  >
+    <dxi-item itemType="group" [colCount]="2" [colSpan]="4">
+      <dxi-item dataField="warehouse" [label]="{text: '회수창고'}"></dxi-item>
+      <dxi-item dataField="rcvSchDate" [label]="{text: '회수예정일'}"></dxi-item>
+      <dxi-item dataField="address" [label]="{text: '회수사주소'}" colSpan="2"></dxi-item>
+    </dxi-item>
+
+    <dxi-item itemType="group" [colCount]="2" [colSpan]="4">
+      <dxi-item dataField="supplierName" [label]="{text: '업체명'}"></dxi-item>
+      <dxi-item dataField="returnSchDate" [label]="{text: '회수일자'}"></dxi-item>
+      <dxi-item dataField="returnAddress" [label]="{text: '주소'}" colSpan="2"></dxi-item>
+      <dxi-item dataField="refName" [label]="{text: '담당자'}"></dxi-item>
+      <dxi-item dataField="phone" [label]="{text: '연락처'}">
+      </dxi-item>
+      <dxi-item dataField="remarks" [label]="{text: '회수요청사항'}" [editorOptions]="{ height: 90 }" colSpan="2"></dxi-item>
+    </dxi-item>
+  </dx-form>
+
+  <hr/>
+
+  <dx-data-grid
+    #grid1
+    [dataSource]="dataSource1"
+    [allowColumnResizing]="true"
+    [columnAutoWidth]="false"
+    [focusedRowEnabled]="false"
+    columnResizingMode=nextColumn
+  >
+    <dxo-editing mode="batch"></dxo-editing>
+    <!-- 그리드 내에서 수정 가능한 모드, 우리 Program에서는 이것을 씀, allowAdding하면 자동으로 +가 먹기에 이벤트를 추가할 필요 없음. -->
+    <dxo-selection mode="single"></dxo-selection>    <!-- 그리그 Row Select 유형 single, multiple -->
+    <dxo-load-panel [enabled]="true"></dxo-load-panel>  <!-- 조회 시 조회 패널 표시 여부 -->
+    <dxo-paging [enabled]="false" [pageSize]=gridUtil.getPageSize()></dxo-paging>    <!-- 페이징 기초 값 -->
+    <dxo-pager
+      [showPageSizeSelector]="true"
+      [allowedPageSizes]=gridUtil.getAllowedPageSize()
+      [showInfo]="false">
+    </dxo-pager>   <!-- 페이저 표시 -->
+    <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState"
+                       [customSave]="saveState"></dxo-state-storing>
+
+    <!-- Columns -->
+    <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                [allowEditing]="false"></dxi-column>
+    <!-- Entity의 Key 값 -->
+    <dxi-column dataField="item" caption="품목명(규격)"></dxi-column>
+    <dxi-column dataField="spec" caption="스펙"></dxi-column>
+    <dxi-column dataField="qty" caption="수량"></dxi-column>
+    <dxo-summary>
+      <dxi-total-item
+        column="qty"
+        summaryType="sum"
+        displayFormat="총합계: {0}"
+      >
+      </dxi-total-item>
+    </dxo-summary>
+  </dx-data-grid>
+
+  <hr/>
+
+  <dx-data-grid
+    #grid2
+    [dataSource]="dataSource2"
+    [allowColumnResizing]="true"
+    [columnAutoWidth]="false"
+    [focusedRowEnabled]="false"
+    columnResizingMode=nextColumn
+  >
+    <dxo-editing mode="batch"></dxo-editing>
+    <!-- 그리드 내에서 수정 가능한 모드, 우리 Program에서는 이것을 씀, allowAdding하면 자동으로 +가 먹기에 이벤트를 추가할 필요 없음. -->
+    <dxo-selection mode="single"></dxo-selection>    <!-- 그리그 Row Select 유형 single, multiple -->
+    <dxo-load-panel [enabled]="true"></dxo-load-panel>  <!-- 조회 시 조회 패널 표시 여부 -->
+    <dxo-paging [enabled]="false" [pageSize]=gridUtil.getPageSize()></dxo-paging>    <!-- 페이징 기초 값 -->
+    <dxo-pager
+      [showPageSizeSelector]="true"
+      [allowedPageSizes]=gridUtil.getAllowedPageSize()
+      [showInfo]="false">
+    </dxo-pager>   <!-- 페이저 표시 -->
+    <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState"
+                       [customSave]="saveState"></dxo-state-storing>
+
+    <!-- Columns -->
+    <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                [allowEditing]="false"></dxi-column>
+    <!-- Entity의 Key 값 -->
+    <dxi-column dataField="item" caption="품목명(규격)"></dxi-column>
+    <dxi-column dataField="spec" caption="스펙"></dxi-column>
+    <dxi-column dataField="serial" caption="Serial"></dxi-column>
+  </dx-data-grid>
+
+  <hr/>
+
+  <dx-form #form2
+           id="under_form"
+           labelLocation="left"
+           readOnly="true"
+           [minColWidth]="300"
+           [colCount]="4"
+           [colCountByScreen]="{
+                        lg:4, md: 4, sm:4, xs:4
+                     }"
+  >
+    <dxi-item itemType="group" [colCount]="2" [colSpan]="4">
+      <dxi-item dataField="d1" editorType="dxNumberBox" [label]="{text: '수량'}"></dxi-item>
+      <dxi-item dataField="d2" editorType="dxTextBox" [label]="{text: '인수'}" [editorOptions]="{value:'인'}"
+                ng-class="text_right"></dxi-item>
+    </dxi-item>
+  </dx-form>
+</div>
+
+
+

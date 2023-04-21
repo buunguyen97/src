@@ -1,0 +1,307 @@
+<div class="contents-header">
+  <!-- Header -->
+  <h2 class="content-block page-title">{{utilService.convert1('/sacs/sacs050', '수입사파트너사등록')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+    <dx-button icon="add"
+               id="Add"
+               type="default"
+               [text]="utilService.convert('com_btn_new')"
+               (onClick)="onPopupOpen($event)">
+    </dx-button>
+  </span>
+  <hr/>
+</div>
+
+<!-- Main Form -->
+<div class="contents-body">
+  <!-- Search Space -->
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               labelLocation="left"
+               [(formData)]="mainFormData"
+               [showColonAfterLabel]="false"
+               [minColWidth]="300"
+               [colCount]="3"
+               [colCountByScreen]="{lg:6, md: 6, sm:3, xs:1}"
+               (onEditorEnterKey)="onSearch()"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="sbxImpt_cd" [label]="{text: utilService.convert1('sales.impt_cd', '수입사', 'Importer')}"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{ items: sbxImptCd,
+                                       displayExpr: 'display',
+                                       valueExpr: 'cd',
+                                       searchMode:'contains',
+                                       searchEnabled: true,
+                                       openOnFieldClick: false,
+                                       minSearchLength: 0,
+                                       placeholder: '',
+                                       noDataText: utilService.convert('com_txt_noDataText'),
+                                       showClearButton: true
+                                    }">
+          </dxi-item>
+          <dxi-item itemType="empty" [colSpan]="4"></dxi-item>
+          <dxi-item dataField="sbxPtrn_cd" [label]="{text: utilService.convert1('sales.ptrn_cd', '파트너사', 'Partner')}"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{ items: sbxPtrnCd,
+                                       displayExpr: 'display',
+                                       valueExpr: 'cd',
+                                       searchMode:'contains',
+                                       searchEnabled: true,
+                                       openOnFieldClick: false,
+                                       minSearchLength: 0,
+                                       placeholder: '',
+                                       noDataText: utilService.convert('com_txt_noDataText'),
+                                       showClearButton: true
+                                    }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()"
+        ></dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid Stage(Impt) -->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('sales.impt_ptrn_list', '수입사파트너사 리스트', 'Importer Partner List')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="mainGridDataSource"
+        [allowColumnResizing]="true"
+        (onRowDblClick)="onPopupOpen($event)"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [columnAutoWidth]="true"
+        [focusedRowEnabled]="true"
+        [rowAlternationEnabled]="true"
+        [showRowLines]="true"
+        columnResizingMode=nextColumn
+      >
+        <!--(onFocusedCellChanged)="onFocusedCellChanging($event)"-->
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single">
+        </dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          placeholder=""></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        ></dxo-pager>
+        <dxo-state-storing [enabled]="false" type="custom" [customLoad]="" [customSave]=""></dxo-state-storing>
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="impt_cd" [caption]="utilService.convert1('sales.impt_cd', '수입사', 'Importer')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="impt_nm"
+                    [caption]="utilService.convert1('sales.impt_nm', '수입사명', 'Importer Name')"></dxi-column>
+        <dxi-column dataField="ptrn_cd" [caption]="utilService.convert1('sales.ptrn_cd', '파트너사', 'Partner')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="ptrn_nm"
+                    [caption]="utilService.convert1('sales.ptrn_nm', '파트너사명', 'Partner Name')"></dxi-column>
+        <dxi-column dataField="zip_no" [caption]="utilService.convert('sales.zip_no')"></dxi-column>
+        <dxi-column dataField="address" [caption]="utilService.convert('cust_ptrnreg_addr')"></dxi-column>
+        <dxi-column dataField="createdby" [caption]="utilService.convert('com_text_createdBy')" alignment="center"
+                    [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createddatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    alignment="center" [visible]="false"></dxi-column>
+        <dxi-column dataField="modifiedby" [caption]="utilService.convert('com_text_modifiedBy')" alignment="center"
+                    [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifieddatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    alignment="center" [visible]="false"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+<!-- Popup Stage -->
+<dx-popup #popup
+          [(title)]="popupMode"
+          [dragEnabled]="true"
+          [width]="1600"
+          [height]="800"
+          (onShown)="onPopupAfterOpen()"
+          (onHidden)="onPopupAfterClose()"
+>
+  <dxi-toolbar-item toolbar="bottom" location="before">
+    <dx-button #deleteBtn
+               type="danger"
+               [text]="utilService.convert('com_btn_del')"
+               (onClick)="onPopupDelete()"
+    ></dx-button>
+  </dxi-toolbar-item>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <dx-button #saveBtn
+               type="success"
+               [text]="utilService.convert('com_btn_save')"
+               (onClick)="onPopupSave()"
+    ></dx-button>
+    <dx-button type="normal"
+               [text]="utilService.convert('com_btn_close')"
+               (onClick)="onPopupClose()"
+    ></dx-button>
+  </dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupFormData"
+             labelLocation="left"
+             [showColonAfterLabel]="true"
+             [colCountByScreen]="{ lg:4, md: 4, sm:2, xs:2 }"
+    >
+      <dxi-item itemType="group"
+                [caption]="utilService.convert1('sales.impt_ptrn_info', '수입사파트너사정보', 'Importer Partner Information')"
+                [colCount]="4" [colSpan]="4">
+        <dxi-item dataField="impt_cd" [label]="{text: utilService.convert1('sales.impt_cd', '수입사', 'Importer')}"
+                  editorType="dxSelectBox" [colSpan]="2"
+                  [editorOptions]="{ items: sbxImptCd,
+                                     displayExpr: 'display',
+                                     valueExpr: 'cd',
+                                     searchMode:'contains',
+                                     searchEnabled: true,
+                                     openOnFieldClick: false,
+                                     minSearchLength: 0,
+                                     placeholder: '',
+                                     noDataText: utilService.convert('com_txt_noDataText'),
+                                     showClearButton: true
+                                     , onValueChanged: onSelectionChangedImptCd
+                                  }">
+          <dxi-validation-rule type="required" [message]="utilService.convert('sales.required')"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="country" [label]="{text: utilService.convert('sales.country')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{ items: dsCountry,
+                                           displayExpr: 'display',
+                                           valueExpr: 'code',
+                                           searchMode:'contains',
+                                           searchEnabled: true,
+                                           showClearButton: true,
+                                           openOnFieldClick: false,
+                                           minSearchLength: 0,
+                                           placeholder: '',
+                                           noDataText: utilService.convert('com_txt_noDataText')}">
+
+        </dxi-item>
+        <dxi-item itemType="empty"></dxi-item>
+        <dxi-item dataField="zip_no" [label]="{text: utilService.convert('sales.zip_no')}"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="3"></dxi-item>
+        <dxi-item dataField="address" [label]="{text: utilService.convert('sales.biz_adr_info')}"
+                  [colSpan]="3"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+        <dxi-item dataField="eng_address" [label]="{text: utilService.convert('sales.biz_adr_info_eng')}"
+                  [colSpan]="3"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+        <dxi-item dataField="wh_address" [label]="{text: utilService.convert('sales.wh_biz_adr_info')}"
+                  [colSpan]="3"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+        <dxi-item dataField="wh_eng_address" [label]="{text: utilService.convert('sales.wh_biz_adr_info_eng')}"
+                  [colSpan]="3"></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+        <dxi-item dataField="chg_nm" [label]="{text: utilService.convert('sales.chg_nm')}"></dxi-item>
+        <dxi-item dataField="chg_tel_no" [label]="{text: utilService.convert('rcv.supplierPhone')}"></dxi-item>
+        <dxi-item dataField="chg_email" [label]="{text: utilService.convert('mm_user_email')}"></dxi-item>
+        <dxi-item itemType="empty"></dxi-item>
+        <dxi-item dataField="ptrn_cd" [label]="{text: utilService.convert1('sales.ptrn_cd', '파트너사', 'Partner')}"
+                  editorType="dxSelectBox" [colSpan]="2"
+                  [editorOptions]="{ items: sbxPtrnCd,
+                                     displayExpr: 'display',
+                                     valueExpr: 'cd',
+                                     searchMode:'contains',
+                                     searchEnabled: true,
+                                     openOnFieldClick: false,
+                                     minSearchLength: 0,
+                                     placeholder: '',
+                                     noDataText: utilService.convert('com_txt_noDataText'),
+                                     showClearButton: true,
+                                     onValueChanged: onSelectionChangedPtrnCd
+                                  }">
+          <dxi-validation-rule type="required" [message]="utilService.convert('sales.required')"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="ptrn_nm" [label]="{text: utilService.convert('sales.ptrn_cd')}"></dxi-item>
+        <dxi-item dataField="ptrn_country" [label]="{text: utilService.convert('sales.country')}"></dxi-item>
+      </dxi-item>
+
+      <dxi-item itemType="group"
+                [caption]="utilService.convert1('sales.impt_ptrn_list', '수입사파트너사 리스트')"
+                [colCount]="4" [colSpan]="4">
+        <dx-data-grid #popupGrid
+                      [dataSource]="popupDataSource"
+                      (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                      (onFocusedRowChanged)="onFocusedRowChanging($event)"
+                      [showBorders]="true"
+                      [allowColumnResizing]="true"
+                      [allowColumnReordering]="true"
+                      [rowAlternationEnabled]="true"
+                      [showRowLines]="true"
+                      [focusedRowEnabled]="true"
+                      columnResizingMode=nextColumn>
+          <dxo-editing mode="batch"></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true"></dxo-export>
+          <dxo-search-panel [visible]="true"
+                            [width]="240"
+                            [placeholder]="''">
+          </dxo-search-panel>
+          <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+          <dxo-pager [visible]="true"
+                     [allowedPageSizes]="gridUtil.getAllowedPageSize()"
+                     [displayMode]="'full'"
+                     [allowedPageSizes]="[5, 10, 20]"
+                     [showPageSizeSelector]="true"
+                     [showInfo]="true"
+                     [showNavigationButtons]="true">
+          </dxo-pager>
+          <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStatePopup" [customSave]="saveStatePopup">
+          </dxo-state-storing>
+          <!-- Columns -->
+          <!-- Entity의 Key 값 -->
+          <dxi-column dataField="ptrn_cd" [caption]="utilService.convert('sales.ptrn_id')"></dxi-column>
+          <dxi-column dataField="ptrn_nm" [caption]="utilService.convert('sales.ptrn_cd')"></dxi-column>
+          <dxi-column dataField="zip_no" [caption]="utilService.convert('sales.zip_no')"></dxi-column>
+          <dxi-column dataField="address" [caption]="utilService.convert('sales.biz_adr_info')"></dxi-column>
+        </dx-data-grid>
+      </dxi-item>
+
+    </dx-form>
+    <!--    <dx-accordion [collapsible]="true" [multiple]="true" [animationDuration]="300">-->
+    <!--      <dxi-item [title]="utilService.convert('sales.expt_ptrn_list')">-->
+    <!--        -->
+    <!--      </dxi-item>-->
+    <!--    </dx-accordion>-->
+  </div>
+</dx-popup>

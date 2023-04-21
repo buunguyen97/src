@@ -1,0 +1,347 @@
+<!-- 공통 > 생산관리 > 공정표 관리 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert1('mm/ptroute', '공정표관리')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+    <dx-button
+      icon="add"
+      id="Open"
+      type="default"
+      [text]="utilService.convert('com_btn_new')"
+      (onClick)="onNew($event)"
+    ></dx-button>
+  </span>
+</div>
+
+<div class="contents-body">
+  <div class="search_folable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                      lg:3, md: 3, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{value: G_TENANT}">
+          </dxi-item>
+
+          <dxi-item dataField="rout" [label]="{text: utilService.convert1('mm_ptroute_rout','공정ID')}">
+            <!--                    editorType="dxSelectBox" [colSpan]="2" [editorOptions]="{-->
+            <!--                        items: dsRout,-->
+            <!--                        displayExpr: 'routGb',-->
+            <!--                        valueExpr: 'uid',-->
+            <!--                        searchMode:'contains',-->
+            <!--                        searchEnabled: true,-->
+            <!--                        showClearButton: true,-->
+            <!--                        openOnFieldClick: false,-->
+            <!--                        minSearchLength: 0,-->
+            <!--                        placeholder: '',-->
+            <!--                        noDataText: utilService.convert('com_txt_noDataText')-->
+            <!--                        }">-->
+          </dxi-item>
+          <dxi-item dataField="routNm" [label]="{text: utilService.convert1('mm_ptroute_routNm','공정명')}"></dxi-item>
+        </dxi-item>
+
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300"
+  >
+    <dxi-item [title]="utilService.convert1('ptroute_maingrid','공정 리스트')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainDataSource"
+                    [(selectedRowKeys)]="selectedRows"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    (onRowDblClick)="rowDblClick($event)"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [showRowLines]="true"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]="gridUtil.getPageSize()"></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true"
+                           type="custom"
+                           [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain">
+        </dxo-state-storing>
+        <!-- Columns -->
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="태넌트" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="rout" width="150"
+                    [caption]="utilService.convert('mm_ptitemroute_gridtitle')"></dxi-column>
+        <dxi-column dataField="routNm" width="150"
+                    [caption]="utilService.convert1('mm_ptroute_routNm', '공정명')" alignment="left"></dxi-column>
+        <dxi-column dataField="workCt" width="250"
+                    [caption]="utilService.convert1('mm_ptroute_workCt', '작업내용')"></dxi-column>
+        <!--        <dxi-column dataField="deptId"-->
+        <!--                    [caption]="utilService.convert1('mm_ptroute_deptId', '부서ID')"></dxi-column>-->
+        <dxi-column dataField="empQty" width="100"
+                    [caption]="utilService.convert1('mm_ptroute_empQty', '인원수')" format='#,##0.####'></dxi-column>
+        <dxi-column dataField="machQty" width="100"
+                    [caption]="utilService.convert1('mm_ptroute_machQty', '설비수')" format='#,##0.####'></dxi-column>
+        <dxi-column dataField="routGb"
+                    [caption]="utilService.convert1('mm_ptroute_routGb', '공정유형')" width="120" alignment="center">
+          <dxo-lookup [dataSource]="dsRoutGb" displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="cutYn" [caption]="utilService.convert1('mm_itemadmin_cutFlg', '절단여부')"
+                    alignment="center" width="100">
+          <dxo-lookup [dataSource]="dsCutYn" displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="actFlg" [caption]="utilService.convert1('mm_itemadmin_actFlg', '사용여부')"
+                    alignment="center" width="100"></dxi-column>
+        <dxi-column dataField="remarks"
+                    [caption]="utilService.convert1('mm_itemadmin_remarks', '비고')"></dxi-column>
+
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn alignment="center"></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn alignment="center"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+
+<!-- Grid popup-->
+<dx-popup
+  #popup
+  [(title)]="popupMode"
+  [closeOnOutsideClick]="false"
+  [dragEnabled]="true"
+  [resizeEnabled]="true"
+  [(visible)]="popupVisible"
+  (onShown)="popupShown($event)"
+  (onHidden)="onPopupAfterClose()"
+>
+  <dxi-toolbar-item
+    #deleteBtn
+    widget="dxButton"
+    location="before"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_del'),
+      stylingMode: 'Contained',
+      type: 'danger',
+      onClick: popupDeleteClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    #saveBtn
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_save'),
+      type: 'success',
+      onClick: popupSaveClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_close'),
+      stylingMode: 'outlined',
+      type: 'normal',
+      onClick: popupCancelClick
+    }"></dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupData"
+             labelLocation="left"
+             [showColonAfterLabel]="true"
+             [scrollingEnabled]="true"
+             [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+    >
+      <!-- Master -->
+
+
+      <dxi-item itemType="group"
+                [caption]="this.utilService.convert1('mm_popup_title', '공정표 등록')"
+                [colCount]="6"
+                [colSpan]="6">
+        <dxi-item dataField="tenant" [label]="{text: 'tenant'}" [visible]="false"
+                  [editorOptions]="{ value: G_TENANT }"></dxi-item>
+        <dxi-item dataField="uid" [label]="{text: 'uid'}" [visible]="false"></dxi-item>
+
+        <dxi-item dataField="rout" [label]="{text: utilService.convert1('mm_ptroute_rout','공정ID')}" [colSpan]="2">
+
+          <!--                  editorType="dxSelectBox" [colSpan]="1" [editorOptions]="{-->
+          <!--                                      items: dsRout,-->
+          <!--                                      displayExpr: 'display',-->
+          <!--                                      valueExpr: 'uid',-->
+          <!--                                      searchMode:'contains',-->
+          <!--                                      searchEnabled: true,-->
+          <!--                                      showClearButton: true,-->
+          <!--                                      openOnFieldClick: false,-->
+          <!--                                      minSearchLength: 0,-->
+          <!--                                      placeholder: '',-->
+          <!--                                      noDataText: utilService.convert('com_txt_noDataText')-->
+          <!--                                      }">-->
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_rout'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="routNm" [label]="{text: utilService.convert1('mm_ptroute_routNm','공정명')}" [colSpan]="2">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_routNm'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+        <dxi-item dataField="workCt" [label]="{text: utilService.convert1('mm_ptroute_workCt', '작업내용')}"
+                  [colSpan]="6">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_workCt'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <!--        <dxi-item dataField="deptId" [label]="{text: utilService.convert1('mm_ptroute_deptId', '부서ID')}">-->
+        <!--                          editorType="dxSelectBox" [colSpan]="1" [editorOptions]="{-->
+        <!--                                              items: dsDeptId,-->
+        <!--                                              displayExpr: 'display',-->
+        <!--                                              valueExpr: 'uid',-->
+        <!--                                              searchMode:'contains',-->
+        <!--                                              searchEnabled: true,-->
+        <!--                                              showClearButton: true,-->
+        <!--                                              openOnFieldClick: false,-->
+        <!--                                              minSearchLength: 0,-->
+        <!--                                              placeholder: '',-->
+        <!--                                              noDataText: utilService.convert('com_txt_noDataText')-->
+        <!--                                              }">-->
+
+        <!--        </dxi-item>-->
+        <dxi-item dataField="empQty" [label]="{text: utilService.convert1('mm_ptroute_empQty', '인원수')}" [colSpan]="2">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_empQty'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="machQty" [label]="{text: utilService.convert1('mm_ptroute_machQty', '설비수')}" [colSpan]="2">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_machQty'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="routGb" [label]="{text: utilService.convert1('mm_ptroute_routGb', '공정유형')}"
+                  editorType="dxSelectBox" [colSpan]="2" [editorOptions]="{
+                                      items: dsRoutGb,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                      }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_routGb'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="actFlg" [label]="{text: utilService.convert1('mm_ptroute_actFlg', '사용여부')}"
+                  editorType="dxSelectBox" [colSpan]="2"
+                  colCount="1" [editorOptions]="{
+                                      items: dsActFlg,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: 'No found data.'
+                                      }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_actFlg'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="waitTm" [label]="{text: utilService.convert1('mm_ptroute_waitTm', '대기시간(초)')}"
+                  [colSpan]="2">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_waitTm'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="workTm" [label]="{text: utilService.convert1('mm_ptroute_workTm', '작업시간(초)')}"
+                  [colSpan]="2">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_workTm'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="redyTm" [label]="{text: utilService.convert1('mm_ptroute_redyTm', '준비시간(초)')}"
+                  [colSpan]="2">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_ptroute_redyTm'))">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="cutYn" [label]="{text: utilService.convert1('mm_ptroute_cutFlg', '절단여부')}"
+                  editorType="dxSelectBox" [colSpan]="2"
+                  [editorOptions]="{
+                                              items: dsCutYn,
+                                              displayExpr: 'codeName',
+                                              valueExpr: 'code',
+                                              searchMode:'contains',
+                                              searchEnabled: true,
+                                              openOnFieldClick: false,
+                                              minSearchLength: 0,
+                                              placeholder: '',
+                                              noDataText: 'No found data.'
+                                              }">
+        </dxi-item>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>

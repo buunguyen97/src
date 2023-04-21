@@ -1,0 +1,284 @@
+<!-- 출고 > 피킹상황조회 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/so/pickStatus')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group"></span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item dataField="pickBatchKey" [label]="{text: utilService.convert('so_so_pickBatchKey')}"
+                    [colSpan]="2"></dxi-item>
+          <dxi-item dataField="soKey" [label]="{text: utilService.convert('so_so_soKey')}" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="soType" [colSpan]="2"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert('so_so_soType')}"
+                    [editorOptions]="{  items: dsSoType,
+                                            displayExpr: 'display',
+                                            valueExpr: 'code',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }">
+          </dxi-item>
+          <dxi-item dataField="sts" [colSpan]="2"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert('so_so_sts')}"
+                    [editorOptions]="{  items: dsSoStatus,
+                                            displayExpr: 'display',
+                                            valueExpr: 'code',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }">
+          </dxi-item>
+
+          <dxi-item itemType="group"
+                    [label]="{text: utilService.convert1('so_so_shipSchDate', '출고예정일')}" [colSpan]="2">
+            <dx-date-box #fromShipSchDate
+                         name="fromShipSchDate"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM-dd"
+                         dateSerializationFormat="yyyy-MM-dd"
+                         [calendarOptions]="{useMaskBehavior:'true'}"
+                         width="45%"
+                         [elementAttr]="{ style: 'float:left' }"
+            >
+            </dx-date-box>
+            <div style="float:left;margin:5px">~</div>
+            <dx-date-box #toShipSchDate
+                         name="toShipSchDate"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM-dd"
+                         dateSerializationFormat="yyyy-MM-dd"
+                         [calendarOptions]="{useMaskBehavior:'true'}"
+                         width="45%"
+                         [elementAttr]="{ style: 'float:left' }"
+            >
+            </dx-date-box>
+          </dxi-item>
+
+          <dxi-item dataField="companyId" [colSpan]="2"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert('so_so_companyId')}"
+                    [editorOptions]="{  items: dsCompany,
+                                            displayExpr: 'display',
+                                            valueExpr: 'uid',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }">
+          </dxi-item>
+          <dxi-item dataField="shipToId" [colSpan]="2"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert('so_so_shipToId')}"
+                    [editorOptions]="{  items: dsCompany,
+                                            displayExpr: 'display',
+                                            valueExpr: 'uid',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                          }">
+          </dxi-item>
+          <dxi-item itemType="empty" [colSpan]="4"></dxi-item>
+
+          <dxi-item dataField="warehouseId" [colSpan]="2"
+                    editorType="dxSelectBox"
+                    disabled="true"
+                    [label]="{text: utilService.convert('so_so_warehouseId')}"
+                    [editorOptions]="{  items: dsWarehouse,
+                                            displayExpr: 'display',
+                                            valueExpr: 'uid'
+                                        }">
+          </dxi-item>
+
+          <dxi-item dataField="ownerId" [colSpan]="2"
+                    editorType="dxSelectBox"
+                    disabled="true"
+                    [label]="{text: utilService.convert('so_so_ownerId')}"
+                    [editorOptions]="{ items: dsCompany,
+                                           displayExpr: 'display',
+                                           valueExpr: 'uid'
+                                        }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   class="reset-btn"
+                   [text]="utilService.convert('com_btn_reset')"
+                   (onClick)="onReset()">
+        </dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300"
+  >
+    <dxi-item [title]="utilService.convert1('so_pickstatus_mainGridTitle', '피킹상황 리스트')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainGridDataSource"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [allowColumnReordering]="true"
+                    [showRowLines]="true"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-filter-row [visible]="true"></dxo-filter-row>
+        <dxo-group-panel [visible]="true"></dxo-group-panel>
+        <dxo-grouping [autoExpandAll]="true"></dxo-grouping>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true"
+                           type="custom"
+                           [customLoad]="loadState"
+                           [customSave]="saveState">
+        </dxo-state-storing>
+
+        <!-- Columns -->
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false" Width="50"></dxi-column>
+        <!-- Entity의 Key 값 -->
+        <dxi-column dataField="tenant" caption="태넌트" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false"></dxi-column>
+
+        <!--    <dxi-column dataField="number" caption="NO" ></dxi-column>-->
+        <dxi-column name="No" caption="No" cellTemplate="NoTemplate" alignment="center" width="50"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="shipSchDate" [caption]="utilService.convert('so_so_shipSchDate')"
+                    editorType="dxDateBox" alignment="center"
+                    [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}"></dxi-column>
+        <dxi-column dataField="pickBatchKey" [caption]="utilService.convert('so_so_pickBatchKey')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="soKey" [caption]="utilService.convert('so_so_soKey')"
+                    alignment="center"></dxi-column>
+        <!--            <dxi-column dataField="pickKey" caption="피킹키" alignment="center" ></dxi-column>-->
+        <dxi-column dataField="soType" [caption]="utilService.convert('so_so_soType')" alignment="center">
+          <dxo-lookup [dataSource]=dsSoType displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="sts" [caption]="utilService.convert('so_so_sts')" alignment="center">
+          <dxo-lookup [dataSource]=dsSoStatus displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="companyId" [caption]="utilService.convert('so_so_companyId')">
+          <dxo-lookup [dataSource]=dsCompany displayExpr="display" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="shipToId" [caption]="utilService.convert('so_so_shipToId')">
+          <dxo-lookup [dataSource]=dsCompany displayExpr="display" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemAdminId" [caption]="utilService.convert('so_so_itemAdminId')" [visible]="false">
+          <dxo-lookup [dataSource]="dsItemAdmin"
+                      displayExpr="display"
+                      valueExpr="uid">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemId" [caption]="utilService.convert('so_so_itemId')"
+                    [setCellValue]="setItemValue">
+          <dxo-lookup [dataSource]="dsItemId"
+                      displayExpr="display"
+                      valueExpr="uid">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="unit" [caption]="utilService.convert1('rcvDetail.unit3Stylecd', '단위')"
+                    [allowEditing]="false" alignment="center">
+          <dxo-lookup [dataSource]="dsItemId" displayExpr="unit3Stylecd" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="expectQty1" [caption]="utilService.convert('so_so_pickExpectQty1')"
+                    format="#,##0.####"></dxi-column>
+        <dxi-column dataField="pickedQty1" [caption]="utilService.convert('so_so_pickPickedQty1')"
+                    format="#,##0.####"></dxi-column>
+        <!--        <dxi-column dataField="alertFlg" [caption]="utilService.convert('so_so_alertFlg')"-->
+        <!--                    alignment="center"></dxi-column>-->
+        <dxi-column dataField="locId" [caption]="utilService.convert('so_pickstatus_locId')">
+          <dxo-lookup [dataSource]="dsLocation"
+                      displayExpr="display"
+                      valueExpr="uid">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="toLocId" [caption]="utilService.convert('so_pickstatus_toLocId')">
+          <dxo-lookup [dataSource]="dsLocation"
+                      displayExpr="display"
+                      valueExpr="uid">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="shippedQty1" [caption]="utilService.convert('so_pickstatus_shippedQty1')"
+                    alignment="right"></dxi-column>
+        <!--        <dxi-column dataField="userId" [caption]="utilService.convert1('so_so_pickUserId', '피킹담당자')"-->
+        <!--                    alignment="center"></dxi-column>-->
+        <dxi-column dataField="actFlg" [caption]="utilService.convert('so_so_actFlg')"
+                    alignment="center"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+

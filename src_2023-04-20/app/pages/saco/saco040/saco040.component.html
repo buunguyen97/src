@@ -1,0 +1,179 @@
+<!-- 영업 > 수금 > 기간별입금내역현황 saco040 -->
+
+<!-- 헤더 -->
+<div class="contents-header">
+    <!-- 페이지 타이틀 -->
+    <h2 class="content-block page-title">{{utilService.convert('/saco/saco040')}}</h2>
+    <!-- 페이지 로드맵 -->
+    <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+    <span class="btngroup page-button-group"></span>
+    <hr/>
+</div>
+
+<!-- 바디 -->
+<div class="contents-body">
+    <!-- 검색 영역 -->
+    <div class="search-box">
+        <!-- 폼 영역 -->
+        <dx-form #mainForm
+                 class                 = "search-form-box"
+                 (onEditorEnterKey)    = "onSearch()"
+                 [(formData)]          = "mainFormData"
+                 [minColWidth]         = "300"
+                 [height]              = "63"
+                 [colCount]            = "3"
+                 [showColonAfterLabel] = "false"
+                 [colCountByScreen]    = "{ lg:6, md: 6, sm:3, xs:1 }"
+        >
+            <dxi-item itemType="group" [colCount] = "6" [colSpan] = "6">
+              <dxi-item itemType="group"
+                        [label]="{text: utilService.convert('sales.depo_dt')}" [colSpan]="2">
+                <dx-date-box #fromDate
+                             name="fromDate"
+                             type="date"
+                             pickerType="calendar"
+                             displayFormat="yyyy-MM-dd"
+                             dateSerializationFormat="yyyy-MM-dd"
+                             [calendarOptions]="{useMaskBehavior:'true'}"
+                             width="45%"
+                             [elementAttr]="{ style: 'float:left' }"
+                >
+                </dx-date-box>
+                <div style="float:left;margin:5px">~</div>
+                <dx-date-box #toDate
+                             name="toDate"
+                             type="date"
+                             pickerType="calendar"
+                             displayFormat="yyyy-MM-dd"
+                             dateSerializationFormat="yyyy-MM-dd"
+                             [calendarOptions]="{useMaskBehavior:'true'}"
+                             width="45%"
+                             [elementAttr]="{ style: 'float:left' }"
+                >
+                </dx-date-box>
+              </dxi-item>
+
+                <!-- 수출사 셀렉트박스 -->
+                <dxi-item dataField      = "expt_cd"
+                          [label]        = "{text: utilService.convert('sales.expt_cd')}"
+                          editorType     = "dxSelectBox"
+                          [colSpan]      = "2"
+                          [editorOptions]= "{ items           : dsExpt
+                                            , displayExpr     : 'nm'
+                                            , valueExpr       : 'cd'
+                                            , searchMode      : 'contains'
+                                            , searchEnabled   : true
+                                            , showClearButton : true
+                                            , openOnFieldClick: false
+                                            , minSearchLength : 0
+                                            , placeholder     : ''
+                                            , noDataText: utilService.convert('com_txt_noDataText')}"
+                ></dxi-item>
+            </dxi-item>
+        </dx-form>
+        <!-- 버튼 그룹 (리셋, 검색) -->
+        <div class="search-btn-group">
+            <dx-button icon     = "check"
+                       type     = "default"
+                       [text]   = "utilService.convert('com_btn_reset')"
+                       class    = "reset-btn"
+                       (onClick)="onReset()"
+            ></dx-button>
+            <dx-button icon     = "check"
+                       type     = "default"
+                       [text]   = "utilService.convert('com_btn_search')"
+                       class    = "search-btn"
+                       (onClick)="onSearch()"
+            ></dx-button>
+        </div>
+    </div>
+    <!-- 검색 끝 -->
+    <!-- 조회 영역 시작 -->
+    <dx-accordion [collapsible]      = "true"
+                  [multiple]         = "false"
+                  [animationDuration]= "300"
+    >
+        <dxi-item [title]="utilService.convert1('sales.dep_stat', '입금 현황', 'Deposit Status')">
+            <!-- 그리드 시작 -->
+            <dx-data-grid #mainGrid
+                          [dataSource]           = "dataSource"
+                          (onToolbarPreparing)   = "gridUtil.onToolbarPreparing($event)"
+                          (onFocusedCellChanged) = "onFocusedCellChanging($event, this.mainGrid)"
+                          [showRowLines]         = "true"
+                          [rowAlternationEnabled]= "true"
+                          [columnAutoWidth]      = "true"
+                          [allowColumnResizing]  = "true"
+                          [focusedRowEnabled]    = "true"
+                          columnResizingMode     =nextColumn
+            >
+                <dxo-editing             mode="batch"></dxo-editing>
+                <dxo-selection           mode="single"></dxo-selection>    <!-- single, multiple -->
+                <dxo-load-panel     [enabled]="true"></dxo-load-panel>
+                <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+                <dxo-export         [enabled]="true"></dxo-export>
+
+                <dxo-filter-row     [visible]="true"></dxo-filter-row>
+                <dxo-group-panel    [visible]="true"></dxo-group-panel>
+                <dxo-grouping [autoExpandAll]="true"></dxo-grouping>
+
+                <dxo-search-panel [visible]="true"
+                                    [width]="240"
+                              [placeholder]="''"
+                ></dxo-search-panel>
+                <dxo-paging [enabled] ="true" [pageSize]=gridUtil.getPageSize() ></dxo-paging>
+
+                <dxo-pager [visible]              ="true"
+                           [allowedPageSizes]     =gridUtil.getAllowedPageSize()
+                           [displayMode]          ="'full'"
+                           [showPageSizeSelector] ="true"
+                           [showInfo]             ="true"
+                           [showNavigationButtons]="true"
+                ></dxo-pager>
+                <dxo-state-storing [enabled]   ="true"
+                                   type        ="custom"
+                                   [customLoad]="loadStateMain"
+                                   [customSave]="saveStateMain">
+                </dxo-state-storing>
+                <!-- column -->
+                <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+		                    alignment="center"></dxi-column>
+		        <div *dxTemplate="let data of 'NoTemplate'">
+		          {{ data.rowIndex + 1}}
+		        </div>
+              <dxi-column dataField = "depo_dt"
+                          [caption] = "utilService.convert('sales.depo_dt')"
+                          dataType  = "date"
+                          editorType= "dxDateBox"
+                          format    = "yyyy-MM-dd"
+                          alignment = "center"
+              ></dxi-column>
+              <dxi-column dataField="depo_no"  [caption]="utilService.convert('sales.depo_no')"     alignment="center"></dxi-column>
+              <dxi-column dataField="coll_expt_cd" [caption]="utilService.convert('sales.coll_expt_cd')"alignment="center"></dxi-column>
+              <dxi-column dataField="coll_expt_nm" [caption]="utilService.convert('sales.coll_expt_nm')"></dxi-column>
+              <dxi-column dataField="cls_mon"  [caption]="utilService.convert('sales.claim_dt')" alignment="center" [calculateCellValue]="clsMon"></dxi-column>
+              <dxi-column dataField="claim_no" [caption]="utilService.convert('sales.claim_no')" alignment="center"></dxi-column>
+              <dxi-column dataField="ord_gb"   [caption]="utilService.convert('sales.ord_gb')"   alignment="center">
+                <dxo-lookup [dataSource]="dsOrdGb" displayExpr="nm" valueExpr="cd"></dxo-lookup>
+              </dxi-column>
+              <dxi-column dataField="expt_cd"  [caption]="utilService.convert('sales.expt_cd')"  alignment="center"></dxi-column>
+              <dxi-column dataField="expt_nm"  [caption]="utilService.convert('sales.expt_nm')"></dxi-column>
+              <dxi-column dataField="depo_amt"     [caption]="utilService.convert('sales.depo_amt')" format="#,##0.###"></dxi-column>
+              <dxi-column dataField="createdby" [caption]="utilService.convert('com_text_createdBy')"
+                  [allowEditing]="false" [visible]="false">
+              <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+              </dxi-column>
+              <dxi-column dataField="createddatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                          [allowEditing]="false" [visible]="false"></dxi-column>
+              <dxi-column dataField="modifiedby" [caption]="utilService.convert('com_text_modifiedBy')"
+                          [allowEditing]="false" [visible]="false">
+                <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+              </dxi-column>
+              <dxi-column dataField="modifieddatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                  [allowEditing]="false" [visible]="false"></dxi-column>
+              <dxo-summary [recalculateWhileEditing]="true">
+                <dxi-total-item column="depo_amt" summaryType="sum" displayFormat="{0}" valueFormat="#,##0.####"></dxi-total-item>
+              </dxo-summary>
+            </dx-data-grid>
+        </dxi-item>
+    </dx-accordion>
+</div>

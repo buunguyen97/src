@@ -1,0 +1,888 @@
+<!-- HEAD START -->
+<div class="contents-header">
+
+  <!-- 페이지 타이틀 -->
+  <h2 class="content-block page-title">{{utilService.convert1('/sasd/sasd030', '품목정보등록')}}</h2>
+
+  <!-- 페이지 로드맵 -->
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+
+  <!-- 버튼 그룹 -->
+  <span class="btngroup page-button-group">
+
+        <!-- 신규 버튼 -->
+        <dx-button icon="add"
+                   id="Open"
+                   type="default"
+                   [text]="utilService.convert('com_btn_new')"
+                   (onClick)="onPopupOpen($event)">
+        </dx-button>
+
+    <!-- 기초재고업로드  -->
+        <dx-button icon="add"
+                   type="default"
+                   [text]="utilService.convert1('sales.item_upload','품목정보 업로드')"
+                   (onClick)="onBeginInvClick($event)"
+        ></dx-button>
+    </span>
+  <hr/>
+</div>
+
+<!-- BODY START -->
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               (onEditorEnterKey)="onSearch()"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{ lg:6, md: 6, sm:3, xs:3 }">
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="item_cd" [label]="{text: utilService.convert('sales.item_cd')}" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="item_nm" [label]="{text: utilService.convert('sales.item_nm')}" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="item_gb"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert1('sales.item_gb', '품목구분', 'Item Class')}"
+                    [colSpan]="2"
+                    [editorOptions]="{ items: dsITEMGB
+                                                      , displayExpr: 'display'
+                                                      , valueExpr: 'code'
+                                                      , searchMode:'contains'
+                                                      , searchEnabled: true
+                                                      , showClearButton: true
+                                                      , openOnFieldClick: false
+                                                      , minSearchLength: 0
+                                                      , placeholder: ''
+                                                      , noDataText: utilService.convert('com_txt_noDataText')}">
+          </dxi-item>
+<!--          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>-->
+          <dxi-item dataField="itemCategory1Id"
+                    [label]="{text: utilService.convert1('sales.itemcategory1id', '품목카테고리1', 'Item Category1')}"
+                    editorType="dxSelectBox"
+                    [colSpan]="2"
+                    [editorOptions]="{ items: dsItemCategory1Id
+                                                      , displayExpr: 'name'
+                                                      , valueExpr: 'uid'
+                                                      , searchMode:'contains'
+                                                      , searchEnabled: true
+                                                      , openOnFieldClick: false
+                                                      , showClearButton: true
+                                                      , minSearchLength: 0
+                                                      , placeholder: ''
+                                                      , onValueChanged: onSearchCategory1Changed
+                                                      , noDataText: utilService.convert('com_txt_noDataText')}">
+          </dxi-item>
+          <dxi-item dataField="itemCategory2Id"
+                    [label]="{text: utilService.convert1('sales.itemcategory2id', '품목카테고리2', 'Item Category2')}"
+                    editorType="dxSelectBox"
+                    [colSpan]="2"
+                    [editorOptions]="{ items: dsSearchItemCategory2Id
+                                                      , displayExpr: 'name'
+                                                      , valueExpr: 'uid'
+                                                      , searchMode:'contains'
+                                                      , searchEnabled: true
+                                                      , openOnFieldClick: false
+                                                      , showClearButton: true
+                                                      , minSearchLength: 0
+                                                      , placeholder: ''
+                                                      , onValueChanged: onSearchCategory2Changed
+                                                      , noDataText: utilService.convert('com_txt_noDataText')}">
+          </dxi-item>
+          <dxi-item dataField="itemCategory3Id"
+                    [label]="{text: utilService.convert1('sales.itemcategory3id', '품목카테고리3', 'Item Category3')}"
+                    editorType="dxSelectBox"
+                    [colSpan]="2"
+                    [editorOptions]="{ items: dsSearchItemCategory3Id
+                                                      , displayExpr: 'name'
+                                                      , valueExpr: 'uid'
+                                                      , searchMode:'contains'
+                                                      , searchEnabled: true
+                                                      , openOnFieldClick: false
+                                                      , showClearButton: true
+                                                      , minSearchLength: 0
+                                                      , placeholder: ''
+                                                      , noDataText: utilService.convert('com_txt_noDataText')}">
+          </dxi-item>
+<!--          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>-->
+          <dxi-item dataField="use_yn" [label]="{text:utilService.convert('com_code_actFlg')}" editorType="dxSelectBox"
+                    [colSpan]="2"
+                    [editorOptions]="{
+                                      items: dsYN,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                      }"
+          >
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()">
+        </dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()"
+                   class="search-btn">
+        </dx-button>
+      </div>
+    </div>
+  </div>
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert('sales.item_list')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainGridDataSource"
+                    (onRowDblClick)="onPopupOpen($event)"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    [allowColumnResizing]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [columnAutoWidth]="true"
+                    [showRowLines]="true"
+                    columnResizingMode=nextColumn>
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom"></dxo-state-storing>
+        <!-- Columns -->
+        <!-- Entity의 Key 값 -->
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="item_cd" [caption]="utilService.convert('sales.item_cd')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="item_nm" [caption]="utilService.convert('sales.item_nm')"></dxi-column>
+        <dxi-column dataField="item_gb" [caption]="utilService.convert('sales.item_gb')" alignment="center">
+          <dxo-lookup [dataSource]=dsITEMGB displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="item_grop" [caption]="utilService.convert('sales.item_grop')" alignment="center">
+          <dxo-lookup [dataSource]=dsITEMGROP displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemCategory1Id" [caption]="utilService.convert('sales.itemcategory1id')"
+                    alignment="center">
+          <dxo-lookup [dataSource]=dsItemCategory1Id displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemCategory2Id" [caption]="utilService.convert('sales.itemcategory2id')"
+                    alignment="center">
+          <dxo-lookup [dataSource]=dsItemCategory2Id displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemCategory3Id" [caption]="utilService.convert('sales.itemcategory3id')"
+                    alignment="center">
+          <dxo-lookup [dataSource]=dsItemCategory3Id displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="prod_gb" [caption]="utilService.convert('sales.prod_gb')" alignment="center">
+          <dxo-lookup [dataSource]=dsPRODGB displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="item_tp" [caption]="utilService.convert('sales.item_tp')" alignment="center">
+          <dxo-lookup [dataSource]=dsITEMTP displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="set_item_yn" [caption]="utilService.convert('sales.set_item_yn')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="serial_yn" [caption]="utilService.convert('sales.serial_yn')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="item_width" [caption]="utilService.convert1('sales.item_width', '가로', 'Horizontal')"
+                    format="#,##0.## mm"></dxi-column>
+        <dxi-column dataField="item_length" [caption]="utilService.convert1('sales.item_length', '세로', 'Length')"
+                    format="#,##0.## mm"></dxi-column>
+        <dxi-column dataField="item_height" [caption]="utilService.convert1('sales.item_height', '높이(길이)', 'Height')"
+                    format="#,##0.## mm"></dxi-column>
+        <dxi-column dataField="spec_nm" [caption]="utilService.convert('sales.spec_nm')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="item_cbm" [caption]="utilService.convert1('sales.item_cbm', '품목CBM', 'Item CBM')"
+                    format="#,##0.###"></dxi-column>
+        <dxi-column dataField="item_wegh" [caption]="utilService.convert1('sales.item_wegh', '중량', 'Weight')"
+                    format="#,##0.## kg"></dxi-column>
+        <dxi-column dataField="use_yn" [caption]="utilService.convert('sales.use_yn')" alignment="center"></dxi-column>
+        <dxi-column dataField="createdby" [caption]="utilService.convert('com_text_createdBy')" alignment="center"
+                    [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createddatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    alignment="center" [visible]="false" alignment="center"></dxi-column>
+        <dxi-column dataField="modifiedby" [caption]="utilService.convert('com_text_modifiedBy')" alignment="center"
+                    [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifieddatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    alignment="center" [visible]="false" alignment="center"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+<!-- POPUP1 START -->
+<dx-popup #popup
+          [(title)]="popupMode"
+          [dragEnabled]="true"
+          (onShown)="onPopupAfterOpen()"
+          (onHidden)="onPopupAfterClose()"
+          height="830">
+  <dxi-toolbar-item #copyBtn
+                    widget="dxButton"
+                    location="after"
+                    toolbar="top"
+                    [options]="{
+                          text: utilService.convert1('inv_copy_button', 'Copy'),
+                          type: 'normal',
+                          onClick: onCopy
+                      }">
+  </dxi-toolbar-item>
+  <dxi-toolbar-item toolbar="bottom" location="before"></dxi-toolbar-item>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <dx-button type="success"
+               [text]="utilService.convert('com_btn_save')"
+               (onClick)="onPopupSave()">
+    </dx-button>
+    <dx-button type="normal"
+               [text]="utilService.convert('com_btn_close')"
+               (onClick)="onPopupClose()">
+    </dx-button>
+  </dxi-toolbar-item>
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupFormData"
+             [scrollingEnabled]="true"
+             [showColonAfterLabel]="false"
+             [colCountByScreen]="{lg:6, md: 6, sm:3, xs:3}">
+      <!--품목상세-->
+      <dxi-item itemType="group" [caption]="utilService.convert1('sales.basic_into', '기본정보', 'Basic Information')"
+                [colCount]="3" [colSpan]="6">
+        <dxi-item dataField="item_cd"
+                  [label]="{text: utilService.convert('sales.item_cd')}"
+                  [editorOptions]="{ maxLength: '15', inputAttr: {'style': 'text-transform: uppercase'}}">
+        </dxi-item>
+        <dxi-item dataField="item_gb"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert('sales.item_gb')}"
+                  [editorOptions]="{ items: dsITEMGB
+                                                  , displayExpr: 'display'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , showClearButton: true
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , onValueChanged: onPopupItemGbChanged
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required" [message]="utilService.convert('sales.required')"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="item_grop"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert('sales.item_grop')}"
+                  [editorOptions]="{ items: dsITEMGROP
+                                                  , displayExpr: 'display'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , showClearButton: true
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required" [message]="utilService.convert('sales.required')"></dxi-validation-rule>
+        </dxi-item>
+
+        <dxi-item dataField="item_nm"
+                  [label]="{text: utilService.convert1('sales.item_nm_kor', '품목명(국문)', 'Item Name(KOR)')}">
+          <dxi-validation-rule type="required" [message]="utilService.convert('sales.required')"></dxi-validation-rule>
+        </dxi-item>
+
+        <dxi-item dataField="item_short_nm"
+                  [label]="{text: utilService.convert1('sales.item_short_nm_kor', '품목약어(국문)', 'Item Short Name(KOR)')}">
+          <dxi-validation-rule type="required" [message]="utilService.convert('sales.required')"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="set_item_yn"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert('sales.set_item_yn')}"
+                  [editorOptions]="{ items: dsYN
+                                                  , displayExpr: 'codeName'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-item>
+
+
+        <dxi-item dataField="eng_item_nm"
+                  [label]="{text: utilService.convert1('sales.item_nm_eng', '품목명(영문)', 'Item Name(ENG)')}">
+        </dxi-item>
+<!--        pattern="^[a-zA-Z0-9-_+=.`~!@#$%^&*\s]+$"-->
+        <dxi-item dataField="eng_item_short_nm"
+                  [label]="{text: utilService.convert1('sales.item_short_nm_eng', '품목약어(영문)', 'Item Short Name(ENG)')}"></dxi-item>
+
+
+        <dxi-item dataField="serial_yn"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert('sales.serial_yn')}"
+                  [editorOptions]="{ items: dsYN
+                                                  , displayExpr: 'codeName'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="barcode"
+                  [label]="{text: utilService.convert1('sales.barcode', '바코드', 'Barcode')}"></dxi-item>
+        <dxi-item dataField="wh_barcode"
+                  [label]="{text: utilService.convert1('sales.wh_barcode', 'Part No.', 'Logistics Barcode')}"></dxi-item>
+        <dxi-item dataField="use_yn"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert('sales.use_yn')}"
+                  [editorOptions]="{ items: dsYN
+                                                  , displayExpr: 'codeName'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+        </dxi-item>
+
+
+        <dxi-item dataField="itemCategory1Id"
+                  [label]="{text: utilService.convert('sales.itemcategory1id')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{
+                                            items: dsItemCategory1Id
+                                                 , displayExpr: 'name'
+                                                 , valueExpr: 'uid'
+                                                 , searchMode:'contains'
+                                                 , searchEnabled: true
+                                                 , openOnFieldClick: false
+                                                 , showClearButton: true
+                                                 , minSearchLength: 0
+                                                 , placeholder: ''
+                                                 , onValueChanged: onPopupCategory1Changed
+                                                 , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="itemCategory2Id"
+                  [label]="{text: utilService.convert('sales.itemcategory2id')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{ items: dsPopupItemCategory2Id
+                                                 , displayExpr: 'name'
+                                                 , valueExpr: 'uid'
+                                                 , searchMode:'contains'
+                                                 , searchEnabled: true
+                                                 , openOnFieldClick: false
+                                                 , showClearButton: true
+                                                 , minSearchLength: 0
+                                                 , placeholder: ''
+                                                 , onValueChanged: onPopupCategory2Changed
+                                                 , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="itemCategory3Id"
+                  [label]="{text: utilService.convert('sales.itemcategory3id')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{ items: dsPopupItemCategory3Id
+                                                  , displayExpr: 'name'
+                                                  , valueExpr: 'uid'
+                                                  , earchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , showClearButton: true
+                                                  , minSearchLength: 0
+                                                  , placeholder: ''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="item_tp"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert('sales.item_tp')}"
+                  [editorOptions]="{ items: dsITEMTP
+                                                  , displayExpr: 'display'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , showClearButton: true
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-item>
+
+        <dxi-item dataField="prod_gb"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert('sales.prod_gb')}"
+                  [editorOptions]="{ items: dsPRODGB
+                                                  , displayExpr: 'display'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , showClearButton: true
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-item>
+
+      </dxi-item>
+
+      <!--사양정보-->
+      <dxi-item itemType="group"
+                [caption]="utilService.convert1('sales.spec_info', '사양정보', 'Specification Information')" [colCount]="3"
+                [colSpan]="6">
+        <dxi-item dataField="item_width"
+                  [label]="{text: utilService.convert('sales.item_width')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.#### mm', max:99999999999999, step: 0, onValueChanged: onLwhChanged}">
+        </dxi-item>
+        <dxi-item dataField="item_length"
+                  [label]="{text: utilService.convert('sales.item_length')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.#### mm', max:99999999999999, step: 0, onValueChanged: onLwhChanged}">
+        </dxi-item>
+        <dxi-item dataField="item_height"
+                  [label]="{text: utilService.convert('sales.item_height')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.#### mm', max:99999999999999, step: 0, onValueChanged: onLwhChanged}">
+        </dxi-item>
+        <dxi-item dataField="spec_nm"
+                  [label]="{text: utilService.convert('sales.spec_nm')}"
+                  [editorOptions]="{ readOnly: true }">
+        </dxi-item>
+        <dxi-item dataField="item_cbm"
+                  [label]="{text: utilService.convert('sales.item_cbm')}"
+                  [editorOptions]="{ readOnly: true }">
+        </dxi-item>
+        <dxi-item dataField="sto_unit"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('sales.sto_unit', '재고단위', 'Inventory Unit')}"
+                  [editorOptions]="{ items: dsSTOUNIT
+                                                  , displayExpr: 'display'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , showClearButton: true
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+        </dxi-item>
+        <dxi-item dataField="item_wegh"
+                  [label]="{text: utilService.convert('sales.item_wegh')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.#### kg', max:99999999999999, step: 0}">
+        </dxi-item>
+        <dxi-item dataField="load_wegh1"
+                  [label]="{text: utilService.convert1('sales.load_wegh1', '적재하중(동하중)', 'Live Load(Dynamic Load)')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.#### kg', max:99999999999999, step: 0}">
+          <dxi-validation-rule type="pattern"
+                               pattern="(^\d+$)|(^\d{1,}.\d{1,2}$)">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="load_wegh2"
+                  [label]="{text: utilService.convert1('sales.load_wegh2', '적재하중(정하중)', 'Live Load(Static Load)')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.#### kg', max:99999999999999, step: 0}">
+          <dxi-validation-rule type="pattern"
+                               pattern="(^\d+$)|(^\d{1,}.\d{1,2}$)">
+          </dxi-validation-rule>
+        </dxi-item>
+      </dxi-item>
+
+      <!--제조정보 파트-->
+      <dxi-item itemType="group"
+                [caption]="utilService.convert1('sales.manuf_info', '제조정보', 'Manufacturing Information')" [colCount]="3"
+                [colSpan]="6">
+        <dxi-item dataField="cal_unit"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('sales.cal_unit', '환산단위', 'Conversion Unit')}"
+                  [editorOptions]="{ items: dsSTOUNIT
+                                                  , displayExpr: 'display'
+                                                  , valueExpr: 'code'
+                                                  , searchMode:'contains'
+                                                  , searchEnabled: true
+                                                  , openOnFieldClick: false
+                                                  , showClearButton: true
+                                                  , minSearchLength: 0
+                                                  , placeholder:''
+                                                  , noDataText: utilService.convert('com_txt_noDataText')}">
+        </dxi-item>
+        <dxi-item dataField="unit_rate"
+                  [label]="{text: utilService.convert1('sales.unit_rate', '환산비율', 'Conversion Rate')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.####', max:99999999999999, step: 0}">
+          <dxi-validation-rule type="pattern"
+                               pattern="(^\d+$)|(^\d{1,}.\d{1,2}$)">
+          </dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="make_loss_unit"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('sales.make_loss_unit', '제조손실단위', 'Manufacturing Loss Unit')}"
+                  [editorOptions]="{ items: dsSTOUNIT
+                                            , displayExpr: 'display'
+                                            , valueExpr: 'code'
+                                            , searchMode:'contains'
+                                            , searchEnabled: true
+                                            , openOnFieldClick: false
+                                            , showClearButton: true
+                                            , minSearchLength: 0
+                                            , placeholder:''
+                                            , noDataText: utilService.convert('com_txt_noDataText')}">
+        </dxi-item>
+        <dxi-item dataField="make_loss_rank"
+                  editorType="dxNumberBox"
+                  [label]="{text: utilService.convert1('sales.make_loss_rank', '제조손실계수', 'Manufacturing Loss Factor')}"
+                  [editorOptions]="{format:'#,##0.####', max:99999999999999, step: 0}">
+        </dxi-item>
+      </dxi-item>
+
+      <!--부가정보 파트-->
+      <dxi-item itemType="group" [caption]="utilService.convert1('sales.add_info', '부가정보', 'Additional Information')"
+                [colCount]="3" [colSpan]="6">
+        <dxi-item dataField="sale_usd_pr"
+                  [label]="{text: utilService.convert1('sales.sale_usd_pr', '표준소비자가(USD)', 'Standard Consumer(USD)')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.#### USD', max:99999999999999, step: 0}">
+        </dxi-item>
+        <dxi-item dataField="sale_krw_pr"
+                  [label]="{text: utilService.convert1('sales.sale_krw_pr', '표준소비자가(KRW)', 'Standard Consumer(KRW)')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.#### KRW', max:99999999999999, step: 0}">
+        </dxi-item>
+        <dxi-item dataField="account_cd"
+                  [label]="{text: utilService.convert1('sales.account_cd', '회계처리코드', 'Accounting Code')}"></dxi-item>
+        <dxi-item dataField="account_sys"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('sales.account_sys', '회계처리시스템', 'Accounting System')}"
+                  [editorOptions]="{ items: dsACCOUNTSYS
+                                           , displayExpr: 'display'
+                                           , valueExpr: 'code'
+                                           , searchMode:'contains'
+                                           , searchEnabled: true
+                                           , openOnFieldClick: false
+                                           , showClearButton: true
+                                           , minSearchLength: 0
+                                           , placeholder:''
+                                           , noDataText: utilService.convert('com_txt_noDataText')}">
+        </dxi-item>
+      </dxi-item>
+
+      <!--탄소정보 파트-->
+      <dxi-item itemType="group" [caption]="utilService.convert1('sales.carb_info', '탄소정보', 'Carbon Information')"
+                [colCount]="3" [colSpan]="6">
+        <dxi-item dataField="mat_signat" [colSpan]="3" editorType="dxTextArea"
+                  [label]="{text:utilService.convert1('sales.mat_signat', '소재/공정특징', 'Material/Process Features')}"></dxi-item>
+        <dxi-item dataField="std_cra" editorType="dxNumberBox"
+                  [label]="{text: utilService.convert1('sales.std_cra', '표준탄소저감량', 'Standard Carbon Reduction')}"
+                  [editorOptions]="{format:'#,##0.####', max:99999999.9999, step: 0}"></dxi-item>
+        <dxi-item dataField="exp_cra" editorType="dxNumberBox"
+                  [label]="{text: utilService.convert1('sales.exp_cra', '예상탄소저감량', 'Estimated Carbon Reduction')}"
+                  [editorOptions]="{format:'#,##0.####', max:99999999.9999, step: 0}"></dxi-item>
+      </dxi-item>
+
+      <!--특이사항 파트-->
+      <dxi-item itemType="group" [caption]="utilService.convert1('sales.uniq', '특이사항', 'Uniqueness')" [colCount]="3"
+                [colSpan]="6">
+        <dxi-item dataField="remark" [colSpan]="3" editorType="dxTextArea"
+                  [label]="{text:utilService.convert('sales.remark')}"
+                  [editorOptions]="{ placeholder: utilService.convert('com_txt_noContent')
+                                   , maxLength:100}"></dxi-item>
+      </dxi-item>
+
+      <!--파일업로드-->
+      <dxi-item [caption]="utilService.convert1('sales.file_upload', '파일업로드', 'File Upload')"
+                itemType="group"
+                [colCount]="6"
+                [colSpan]="6">
+        <dxi-item [colSpan]="2">
+          <form id="uploadForm" action="{{uploadUrl}}/sales-service/azureStorage/uploadFile" method="post"
+                enctype="multipart/form-data">
+            <input type="hidden" value="{{logFileNm}}"/>
+            <dx-file-uploader #fileUploader
+                              name="file"
+                              [multiple]="false"
+                              [selectButtonText]="utilService.convert1('sales.fileUploadButtonText', '파일첨부', 'Attachment')"
+                              labelText=""
+                              accept="image/*, .xls, .xlsx, .cvs"
+                              uploadMethod="POST"
+                              [uploadUrl]="uploadUrl"
+                              (onOptionChanged)="onUploaded($event)"
+                              uploadMode="useForm"
+                              [allowCanceling]="true"
+                              (onValueChanged)="generateFileNm($event)">
+            </dx-file-uploader>
+          </form>
+        </dxi-item>
+        <dxi-item dataField="phy_file_nm1" [label]="{text: ' '}" [editorOptions]="{ readOnly: true}"
+                  [colSpan]="2"></dxi-item>
+        <dxi-item [colSpan]="4">
+          <dx-button #downloadFileBtn
+                     icon="save"
+                     type="normal"
+                     [text]="utilService.convert1('salse.downlaod_btn', '다운로드', 'Download')"
+                     (onClick)="onDownloadFile()">
+          </dx-button>
+          <dx-button #deleteFileBtn
+                     icon="save"
+                     type="normal"
+                     [text]="utilService.convert1('sales.delete_btn', '삭제', 'Delete')"
+                     (onClick)="onDeleteFile()">
+          </dx-button>
+        </dxi-item>
+      </dxi-item>
+
+      <!--<dxi-item dataField="log_file_nm1" [label]="{text: ' '}" [editorOptions]="{ readOnly: true }"></dxi-item>-->
+      <!--파일다운로드/삭제-->
+      <!--      <dxi-item [caption]="utilService.convert1('sales.fileDownloadBtn', '파일다운로드', 'Download')"-->
+      <!--                itemType="group"-->
+      <!--                [colCount]="3"-->
+      <!--                [colSpan]="3">-->
+      <!--        <dxi-item dataField="phy_file_nm1" [label]="{text: ' '}" [editorOptions]="{ readOnly: true }"></dxi-item>-->
+      <!--        <dxi-item [colCount]="2" [colSpan]="2">-->
+      <!--          <dx-button #downloadFileBtn-->
+      <!--                     icon="save"-->
+      <!--                     type="normal"-->
+      <!--                     [text]="utilService.convert1('salse.downlaod_btn', '다운로드', 'Download')"-->
+      <!--                     (onClick)="onDownloadFile()">-->
+      <!--          </dx-button>-->
+      <!--          <dx-button #deleteFileBtn-->
+      <!--                     icon="save"-->
+      <!--                     type="normal"-->
+      <!--                     [text]="utilService.convert1('sales.delete_btn', '삭제', 'Delete')"-->
+      <!--                     (onClick)="onDeleteFile()">-->
+      <!--          </dx-button>-->
+      <!--        </dxi-item>-->
+
+      <!-- 이미지 -->
+      <!--      <dxi-item #uploadImg-->
+      <!--                [caption]="utilService.convert1('sales.fileUploadImage', '파일업로드이미지', 'File Upload Image')"-->
+      <!--                itemType="group"-->
+      <!--                [colCount]="6"-->
+      <!--                [colSpan]="6">-->
+      <!--        <dxi-item itemType="empty" [colCount]="1" [colSpan]="1"></dxi-item>-->
+      <!--        <dxi-item [colCount]="4" [colSpan]="4">-->
+      <!--          <img id="uploadImage" height='400' width='400'/>-->
+      <!--        </dxi-item>-->
+      <!--                <dxi-item itemType="empty" [colCount]="1" [colSpan]="1"></dxi-item>-->
+      <!--      </dxi-item>-->
+
+      <dxi-item [caption]="utilService.convert1('sales.fileDownloadImage', '파일다운로드이미지', 'File Download Image')"
+                itemType="group"
+                [colCount]="6"
+                [colSpan]="6">
+        <dxi-item itemType="empty" [colCount]="1" [colSpan]="1"></dxi-item>
+        <dxi-item [colCount]="4" [colSpan]="4">
+          <img id="legacyImage" height='400' width='400'/>
+        </dxi-item>
+        <dxi-item itemType="empty" [colCount]="1" [colSpan]="1"></dxi-item>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>
+
+<!-- 제품정보 업로드 팝업 -->
+<dx-popup [title]="utilService.convert1('sales.item_upload','품목정보 업로드', 'Item Information Upload')"
+          [closeOnOutsideClick]="false"
+          [dragEnabled]="true"
+          [width]="960"
+          [height]="744"
+          [(visible)]="itemUpPopupVisible"
+          (onHidden)="onItemUpPopupClose($event)">
+
+  <!-- 제품정보 업로드 버튼 -->
+  <dxi-toolbar-item widget="dxButton"
+                    location="after"
+                    toolbar="bottom"
+                    [options]="{ text: utilService.convert('com_btn_upload')
+                                   , type: 'success'
+                                   , onClick: onItemUpSaveClick}">
+  </dxi-toolbar-item>
+
+  <!-- 제품정보 닫기 버튼 -->
+  <dxi-toolbar-item widget="dxButton"
+                    location="after"
+                    toolbar="bottom"
+                    [options]="{ text: utilService.convert('com_btn_close')
+                                   , onClick: onItemUpCancelClick}">
+  </dxi-toolbar-item>
+
+  <!-- 제품정보 폼 시작 -->
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #beginInvForm
+             [(formData)]="itemUpFormData"
+             [showColonAfterLabel]="false"
+             [colCountByScreen]="{ lg:4, md: 4, sm:2, xs:2 }">
+      <dxi-item [caption]="utilService.convert1('sales.item_upload', '품목정보 업로드')" itemType="group" [colCount]="4"
+                [colSpan]="4">
+        <div class="flex-container">
+          <dx-file-uploader #fileUploader
+                            [selectButtonText]="utilService.convert1('fileUploadButtonText', '파일 첨부')"
+                            labelText=""
+                            accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            uploadMode="useForm"
+                            [allowCanceling]="true">
+          </dx-file-uploader>
+          <dx-button type="default"
+                     [useSubmitBehavior]="true"
+                     [text]="utilService.convert1('SubmitFile', '파일 적용')"
+                     (onClick)="onItemUpFileUploader(fileUploader)">
+          </dx-button>
+          <dx-button type="default"
+                     [text]="utilService.convert('com_btn_reset')"
+                     (onClick)="onItemUpResetFileUploader(fileUploader)">
+          </dx-button>
+        </div>
+      </dxi-item>
+
+      <!-- 제품정보 품목 리스트 그룹 -->
+      <dxi-item [caption]="utilService.convert1('sales.item_list', '품목 리스트')" itemType="group" [colCount]="4"
+                [colSpan]="4">
+
+        <!-- 제품정보 그리드 시작 -->
+        <dx-data-grid #beginInvListGrid
+                      [dataSource]="itemUpDataSource"
+                      (onToolbarPreparing)="onToolbarPreparingWithExtra($event)"
+                      [showRowLines]="true"
+                      [rowAlternationEnabled]="true"
+                      [focusedRowEnabled]="true"
+                      [showBorders]="true"
+                      [allowColumnResizing]="true"
+                      [allowColumnReordering]="true"
+                      [columnAutoWidth]="true"
+                      [height]="430"
+                      columnResizingMode=nextColumn>
+          <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+          <dxo-pager [visible]="true"
+                     [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                     [displayMode]="'full'"
+                     [showPageSizeSelector]="true"
+                     [showInfo]="true"
+                     [showNavigationButtons]="true">
+          </dxo-pager>
+          <dxo-editing mode="batch"></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true"></dxo-export>
+          <dxo-search-panel [visible]="true"
+                            [width]="300"
+                            [placeholder]="''">
+          </dxo-search-panel>
+          <dxo-state-storing [enabled]="true"
+                             type="custom"
+                             [customLoad]="loadStateBeginInv"
+                             [customSave]="saveStateBeginInv">
+          </dxo-state-storing>
+          <dxi-column dataField="tenant"
+                      caption="tenant"
+                      [visible]="false"
+                      [allowSearch]="false"
+                      [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column name="No" [caption]="utilService.convert('com_text_no')" width="40" cellTemplate="NoTemplate"
+                      alignment="center"></dxi-column>
+          <div *dxTemplate="let data of 'NoTemplate'">
+            {{ data.rowIndex + 1}}
+          </div>
+          <dxi-column dataField="err_msg" [caption]="utilService.convert('sales.err_msg')" alignment="center"
+                      width="70">
+            <dxo-header-filter [dataSource]="trafficFilter"></dxo-header-filter>
+          </dxi-column>
+          <!-- 제품정보 컬럼 시작 -->
+          <dxi-column dataField="item_cd" [caption]="utilService.convert('sales.item_cd')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="item_gb_nm" [caption]="utilService.convert('sales.item_gb')"></dxi-column>
+          <dxi-column dataField="item_grop_nm" [caption]="utilService.convert('sales.item_grop')"></dxi-column>
+          <dxi-column dataField="serial_yn" [caption]="utilService.convert('sales.serial_yn')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="set_item_yn" [caption]="utilService.convert('sales.used_yn')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="itemcategory1nm" [caption]="utilService.convert('sales.itemcategory1id')"></dxi-column>
+          <dxi-column dataField="itemcategory2nm" [caption]="utilService.convert('sales.itemcategory2id')"></dxi-column>
+          <dxi-column dataField="itemcategory3nm" [caption]="utilService.convert('sales.itemcategory3id')"></dxi-column>
+          <dxi-column dataField="prod_gb_nm" [caption]="utilService.convert('sales.prod_gb')"></dxi-column>
+          <dxi-column dataField="barcode" [caption]="utilService.convert('sales.barcode')"></dxi-column>
+          <dxi-column dataField="wh_barcode" [caption]="utilService.convert('sales.wh_barcode')"></dxi-column>
+          <dxi-column dataField="item_tp_nm" [caption]="utilService.convert('sales.item_tp')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="item_nm" [caption]="utilService.convert('sales.item_nm_kor')"></dxi-column>
+          <dxi-column dataField="eng_item_nm" [caption]="utilService.convert('sales.item_nm_eng')"></dxi-column>
+          <dxi-column dataField="item_short_nm" [caption]="utilService.convert('sales.item_short_nm_kor')"></dxi-column>
+          <dxi-column dataField="eng_item_short_nm"
+                      [caption]="utilService.convert('sales.item_short_nm_eng')"></dxi-column>
+          <dxi-column dataField="use_yn" [caption]="utilService.convert('sales.use_yn')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="item_length" [caption]="utilService.convert('sales.item_length')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="item_width" [caption]="utilService.convert('sales.item_width')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="item_height" [caption]="utilService.convert('sales.item_height')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="sto_unit_nm" [caption]="utilService.convert('sales.sto_unit')"></dxi-column>
+          <dxi-column dataField="item_wegh" [caption]="utilService.convert('sales.item_wegh')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="load_wegh1" [caption]="utilService.convert('sales.load_wegh1')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="load_wegh2" [caption]="utilService.convert('sales.load_wegh2')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="cal_unit_nm" [caption]="utilService.convert('sales.cal_unit')"></dxi-column>
+          <dxi-column dataField="unit_rate" [caption]="utilService.convert('sales.unit_rate')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="make_loss_unit_nm"
+                      [caption]="utilService.convert('sales.make_loss_unit')"></dxi-column>
+          <dxi-column dataField="make_loss_rank" [caption]="utilService.convert('sales.make_loss_rank')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="sale_usd_pr" [caption]="utilService.convert('sales.sale_usd_pr')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="sale_krw_pr" [caption]="utilService.convert('sales.sale_krw_pr')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="account_cd" [caption]="utilService.convert('sales.account_cd')"></dxi-column>
+          <dxi-column dataField="account_sys" [caption]="utilService.convert('sales.account_sys')"></dxi-column>
+          <dxi-column dataField="mat_signat" [caption]="utilService.convert('sales.mat_signat')"></dxi-column>
+          <dxi-column dataField="std_cra" [caption]="utilService.convert('sales.std_cra')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="exp_cra" [caption]="utilService.convert('sales.exp_cra')"
+                      alignment="right"></dxi-column>
+          <dxi-column dataField="remark" [caption]="utilService.convert('sales.remark')"></dxi-column>
+        </dx-data-grid>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>

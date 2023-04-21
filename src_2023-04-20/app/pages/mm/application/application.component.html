@@ -1,0 +1,213 @@
+<h2 class="content-block">어플리케이션</h2>
+<hr/>
+<div align="right">
+  <!-- 조회버튼 -->
+  <dx-button icon="check"
+             id="Search"
+             type="default"
+             text="Search"
+             (onClick)="onSearch()"
+  ></dx-button>
+  <!-- 신규버튼  -->
+  <dx-button icon="add"
+             id="Open"
+             type="default"
+             text="New"
+             (onClick)="onNew($event)"
+  ></dx-button>
+</div>
+<dx-accordion [collapsible]="true"
+              [multiple]="false"
+              [animationDuration]="300"
+>
+  <dxi-item title="조회조건">
+    <dx-form #mainForm
+             labelLocation="left"
+             [(formData)]="mainFormData"
+             [minColWidth]="300"
+             [colCount]="4"
+             [colCountByScreen]="{
+                      lg:4, md: 4, sm:2, xs:1
+                   }"
+    >
+      <dxi-item itemType="group" [colCount]="4" [colSpan]="4">
+        <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                  [editorOptions]="{ value: G_TENANT }"></dxi-item>
+        <dxi-item dataField="app" [label]="{text: '어플리케이션코드'}">
+          <dxi-validation-rule type="stringLength" [max]="30"
+                               message="어플리케이션코드는 30자 이하로 입력하세요."></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="title" [label]="{text: '어플리케이션명'}">
+          <dxi-validation-rule type="stringLength" [max]="100"
+                               message="어플리케이션명는 100자 이하로 입력하세요."></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="actFlg" [label]="{text: '사용여부'}" width="80" editorType="dxSelectBox" colSpan="2"
+                  colCount="2"
+                  [editorOptions]="{
+                                      items: dsActFlg,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: 'No found data.'
+                                      }"
+        >
+          <!-- <dxi-validation-rule type="required"></dxi-validation-rule> -->
+        </dxi-item>
+      </dxi-item>
+    </dx-form>
+  </dxi-item>
+</dx-accordion>
+
+<!--Grid-->
+<div class="jflab_contents">
+  <dx-data-grid
+    #mainGrid
+    [dataSource]="dataSource"
+    (onToolbarPreparing)="onToolbarPreparing($event)"
+    (onRowDblClick)="rowDblClick($event)"
+    [(selectedRowKeys)]="selectedRows"
+    [allowColumnResizing]="true"
+    [columnAutoWidth]="true"
+    [focusedRowEnabled]="true"
+    (onFocusedCellChanged)="onFocusedCellChanging($event)"
+    [showRowLines]="true"
+    (onExporting)="gridUtil.onPageExportXlsx($event)"
+    columnResizingMode=nextColumn
+  >
+
+    <dxo-editing mode="batch"></dxo-editing>
+    <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+    <dxo-load-panel [enabled]="true"></dxo-load-panel>
+    <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+    <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+    <dxo-search-panel
+      [visible]="true"
+      [width]="240"
+      placeholder="Search..."></dxo-search-panel>
+    <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+    <dxo-pager
+      [showPageSizeSelector]="true"
+      [allowedPageSizes]=gridUtil.getAllowedPageSize()
+      [showInfo]="true">
+    </dxo-pager>
+    <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState"
+                       [customSave]="saveState"></dxo-state-storing>
+    <!--
+    <dxo-state-storing type="custom"
+                       [enabled]="true"
+                       storageKey="mm_company">
+    </dxo-state-storing> -->
+
+    <!-- Columns
+     <dxi-validation-rule type="required"></dxi-validation-rule> -->
+    <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false" [showInColumnChooser]="false"
+                [allowEditing]="false"></dxi-column>
+    <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+    <dxi-column dataField="app" caption="어플리케이션코드">
+      <dxi-validation-rule type="stringLength" [max]="30"
+                           message="어플리케이션코드는 30자 이하로 입력하세요."></dxi-validation-rule>
+    </dxi-column>
+    <dxi-column dataField="title" caption="어플리케이션명">
+      <dxi-validation-rule type="stringLength" [max]="100"
+                           message="어플리케이션명은 100자 이하로 입력하세요."></dxi-validation-rule>
+    </dxi-column>
+    <dxi-column dataField="url" caption="URL">
+      <dxi-validation-rule type="stringLength" [max]="255" message="URL은 255자 이하로 입력하세요."></dxi-validation-rule>
+    </dxi-column>
+    <dxi-column dataField="remarks" caption="비고">
+      <dxi-validation-rule type="stringLength" [max]="255" message="비고는 255자 이하로 입력하세요."></dxi-validation-rule>
+    </dxi-column>
+  </dx-data-grid>
+</div>
+
+<!-- Grid popup-->
+<dx-popup
+  [(title)]="popupMode"
+  [closeOnOutsideClick]="false"
+  [dragEnabled]="true"
+  [resizeEnabled]="true"
+  [(visible)]="popupVisible"
+  (onShown)="popupShown($event)"
+>
+  <dxi-toolbar-item
+    #deleteBtn
+    widget="dxButton"
+    location="before"
+    toolbar="bottom"
+    [options]="{
+      text: 'Delete',
+      stylingMode: 'Contained',
+      type: 'danger',
+      onClick: popupDeleteClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: 'Save',
+      type: 'success',
+      onClick: popupSaveClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: 'Close',
+      stylingMode: 'outlined',
+      type: 'normal',
+      onClick: popupCancelClick
+    }"></dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupData"
+             labelLocation="left"
+             [showColonAfterLabel]="true"
+             [colCountByScreen]="{
+                  lg:4, md: 4, sm:2, xs:2
+               }"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group" caption="어플리케이션 정보" [colCount]="4" [colSpan]="4">
+        <dxi-item dataField="app" [label]="{text: '어플리케이션코드'}">
+          <dxi-validation-rule type="required" message="어플리케이션코드를 입력하세요."></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="actFlg" [label]="{text: '사용여부'}" width="80" editorType="dxSelectBox" colSpan="2"
+                  colCount="2"
+                  [editorOptions]="{
+                                      items: dsActFlg,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: 'No found data.'
+                                      }"
+        >
+          <dxi-validation-rule type="required" message="사용여부를 입력하세요."></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+        <dxi-item dataField="title" [label]="{text: '어플리케이션명'}">
+          <dxi-validation-rule type="required" message="어플리케이션명를 입력하세요."></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item itemType="empty" [colSpan]="3"></dxi-item>
+        <dxi-item dataField="url" [label]="{text: 'URL'}" [colSpan]="3">
+          <dxi-validation-rule type="required" message="URL을 입력하세요."></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item itemType="empty" [colSpan]="3"></dxi-item>
+        <dxi-item dataField="remarks" [colSpan]="3" editorType="dxTextArea" [label]="{text: '비고'}"
+                  [editorOptions]="{placeholder: '내용이 없습니다.'}"></dxi-item>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>
+

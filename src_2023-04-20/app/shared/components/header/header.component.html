@@ -1,0 +1,238 @@
+<header>
+  <dx-toolbar class="header-toolbar">
+    <dxi-item location="before" widget="dxButton" locateInMenu="never">
+      <div class="top-logo">Alpoter</div>
+    </dxi-item>
+    <dxi-item *ngIf="menuToggleEnabled"
+              location="before"
+              widget="dxButton"
+              cssClass="menu-button top-toggle-btn"
+              [options]="{
+                icon: 'menu',
+                stylingMode: 'text',
+                onClick: toggleMenu
+              }">
+    </dxi-item>
+
+    <dxi-item location="before"
+              cssClass="top-gnb">
+      <dx-tabs [dataSource]="tabs"
+               [selectedIndex]="selectedIndex"
+               noDataText=""
+               (onItemClick)="onSelectTab($event)"
+      ></dx-tabs>
+    </dxi-item>
+
+
+    <!-- 공통 데이터 START -->
+    <!-- 소속회사 cssClass="top-keyword-search"-->
+    <dxi-item location="after">
+<!--      <dx-select-box-->
+<!--        #company-->
+<!--        [items]="dsCompany"-->
+<!--        [label]="utilService.convert1('header.companyId', '소속회사')"-->
+<!--        placeholder=""-->
+<!--        displayExpr="display"-->
+<!--        valueExpr="uid">-->
+<!--      </dx-select-box>-->
+
+
+      <dx-drop-down-box
+        [width]="240"
+        [label]="utilService.convert1('header.companyId', '소속회사')"
+        [dataSource]="dsCompany"
+        [(value)]="treeBoxValue"
+        [(opened)]="isTreeBoxOpened"
+        valueExpr="uid"
+        displayExpr="display"
+        (onValueChanged)="syncTreeViewSelection($event)"
+        (onOptionChanged)="onTreeBoxOptionChanged($event)"
+        [dropDownOptions]="{width: 380}"
+        >
+        <div *dxTemplate="let data of 'content'">
+          <dx-tree-view
+            #treeView
+            [dataSource]="dsCompany"
+            dataStructure="plain"
+            keyExpr="uid"
+            displayExpr="display"
+            parentIdExpr="parentIdExpr"
+            [selectByClick]="true"
+            selectionMode="single"
+            (onContentReady)="$event.component.selectItem(treeBoxValue)"
+            (onItemSelectionChanged)="treeView_itemSelectionChanged($event)"
+          >
+          </dx-tree-view>
+        </div>
+
+      </dx-drop-down-box>
+      <!--      <dx-drop-down-box-->
+      <!--        [(value)]="1"-->
+      <!--        valueExpr="code"-->
+      <!--        displayExpr="display"-->
+      <!--        [placeholder]="''"-->
+      <!--        [showClearButton]="true"-->
+      <!--        [dataSource]="dsCompany"-->
+      <!--      >-->
+      <!--        <div *dxTemplate="let data of 'content'">-->
+      <!--          <dx-tree-view-->
+      <!--            [dataSource]="dsCompany"-->
+      <!--            dataStructure="plain"-->
+      <!--            keyExpr="code"-->
+      <!--            selectionMode="multiple"-->
+      <!--            showCheckBoxesMode="normal"-->
+      <!--            [selectNodesRecursive]="false"-->
+      <!--            displayExpr="display"-->
+      <!--            [selectByClick]="true"-->
+      <!--          >-->
+      <!--          </dx-tree-view>-->
+      <!--        </div>-->
+      <!--      </dx-drop-down-box>-->
+    </dxi-item>
+    <!-- 창고 cssClass="top-keyword-search"-->
+    <dxi-item widget="dxSelectBox" location="after">
+      <dx-select-box
+        #warehouse
+        [items]="dsWarehouse"
+        [label]="utilService.convert1('header.warehouseId', '창고')"
+        placeholder=""
+        displayExpr="display"
+        valueExpr="uid"
+        (onValueChanged)="onSelectWarehouse($event)">
+      </dx-select-box>
+    </dxi-item>
+    <!-- 화주(데이터 고정으로 주석처리) -->
+    <!--    <dxi-item widget="dxSelectBox" location="after">-->
+    <!--      <dx-select-box-->
+    <!--        #owner-->
+    <!--        [items]="dsOwner"-->
+    <!--        [label]="utilService.convert1('header.ownerId', '화주')"-->
+    <!--        placeholder=""-->
+    <!--        displayExpr="display"-->
+    <!--        valueExpr="uid"-->
+    <!--        (onValueChanged)="onSelectOwner($event)">-->
+    <!--      </dx-select-box>-->
+    <!--    </dxi-item>-->
+    <!-- 품목관리사 -->
+    <dxi-item widget="dxSelectBox" location="after">
+      <dx-select-box
+        #itemAdmin
+        [items]="dsItemAdmin"
+        [label]="utilService.convert1('header.itemAdmin', '품목관리사')"
+        placeholder=""
+        displayExpr="display"
+        valueExpr="uid"
+        (onValueChanged)="onSelectItemAdmin($event)">
+      </dx-select-box>
+    </dxi-item>
+    <!-- 공통 데이터 END -->
+
+    <!--    <dxi-item location="after" cssClass="menu-button top-utilitymenu ut-language selected">-->
+    <!--      <dx-drop-down-button icon="globe"-->
+    <!--                           displayExpr="name"-->
+    <!--                           [items]="alignments"-->
+    <!--                           [dropDownOptions]="{ width: 200 }">-->
+    <!--      </dx-drop-down-button>-->
+    <!--    </dxi-item>-->
+    <!--    <dxi-item location="after" cssClass="menu-button top-utilitymenu ut-alarm selected">-->
+    <!--      <dx-drop-down-button icon="box"-->
+    <!--                           displayExpr="name"-->
+    <!--                           [items]="alignments"-->
+    <!--                           [dropDownOptions]="{ width: 200 }">-->
+    <!--      </dx-drop-down-button>-->
+    <!--    </dxi-item>-->
+
+    <dxi-item location="after" cssClass="menu-button top-utilitymenu ut-setting">
+      <dx-drop-down-button #dropDownBtn
+                           icon="preferences"
+                           [dropDownOptions]="{onShown: onShown, width: 420, height: 400}">
+        <div *dxTemplate="let data of 'content'" class="personal-setting">
+          <dx-form #settingForm
+                   [showColonAfterLabel]="false">
+            <dxi-item itemType="group" caption="Color Themes">
+              <dxi-item dataField="colorMode"
+                        [label]="{text: 'Color Mode'}">
+                <dx-radio-group #colorModeComponent
+                                [items]="colorMode"
+                                displayExpr="name"
+                                layout="horizontal">
+                </dx-radio-group>
+              </dxi-item>
+              <dxi-item dataField="colorScheme"
+                        [label]="{text: 'Color Scheme'}">
+                <dx-radio-group #colorSchemeComponent
+                                [items]="colorScheme"
+                                displayExpr="name">
+                </dx-radio-group>
+              </dxi-item>
+            </dxi-item>
+            <dxi-item itemType="group" caption="FontSize">
+              <dxi-item dataField="fontSize"
+                        [label]="{text: 'Font Size'}">
+                <dx-radio-group #fontSizeComponent
+                                [items]="fontSize"
+                                displayExpr="name"
+                                layout="horizontal">
+                </dx-radio-group>
+              </dxi-item>
+            </dxi-item>
+            <dxi-item itemType="group" caption="Font">
+              <dxi-item dataField="font"
+                        [label]="{text: 'Font'}">
+                <dx-radio-group #fontComponent
+                                [items]="font"
+                                layout="horizontal"
+                                displayExpr="name">
+                </dx-radio-group>
+              </dxi-item>
+            </dxi-item>
+          </dx-form>
+          <dxi-item class="search-btn-group">
+            <dx-button type="default"
+                       (onClick)="setSetting()"
+                       [text]="'설정'">
+            </dx-button>
+          </dxi-item>
+        </div>
+      </dx-drop-down-button>
+    </dxi-item>
+
+
+    <!--
+        <dxi-item location="after"
+            widget="dxButton"
+            cssClass="menu-button top-utilitymenu ut-alarm selected"
+            [options]="{
+              icon: 'box'
+            }">
+        </dxi-item>
+        <dxi-item location="after"
+            widget="dxButton"
+            cssClass="menu-button top-utilitymenu ut-setting"
+            [options]="{
+              icon: 'preferences'
+            }">
+        </dxi-item> -->
+
+    <dxi-item
+      cssClass="top-user"
+      location="after"
+      locateInMenu="auto"
+      menuItemTemplate="menuItem">
+      <div *dxTemplate="let data of 'item'">
+        <dx-button
+          class="user-button authorization"
+          width=""
+          height="100%"
+          stylingMode="text">
+          <div *dxTemplate="let data of 'content'">
+            <app-user-panel [user]="user" [menuItems]="userMenuItems" menuMode="context"></app-user-panel>
+          </div>
+        </dx-button>
+      </div>
+    </dxi-item>
+    <div *dxTemplate="let data of 'menuItem'">
+      <app-user-panel [user]="user" [menuItems]="userMenuItems" menuMode="list"></app-user-panel>
+    </div>
+  </dx-toolbar>
+</header>

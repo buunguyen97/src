@@ -1,0 +1,368 @@
+<!-- 공통 > 출고할당룰 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/mm/allocpriority')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+      <dx-button icon="add"
+                 id="Open"
+                 type="default"
+                 [text]="utilService.convert('com_btn_new')"
+                 (onClick)="onPopupOpen($event)">
+      </dx-button>
+    </span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                      lg:3, md: 3, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+
+          <dxi-item dataField="warehouseId"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert1('mm_allocpriority_warehouseId', '창고')}"
+                    [editorOptions]="{  items: dsWarehouseId,
+                                            displayExpr: 'display',
+                                            valueExpr: 'uid',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            openOnFieldClick: false,
+                                            showClearButton: true,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }">
+            <dxi-validation-rule type="required"
+                                 [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_warehouseId'))"></dxi-validation-rule>
+          </dxi-item>
+
+          <dxi-item dataField="companyId"
+                    editorType="dxSelectBox" [disabled]="true"
+                    [label]="{text: utilService.convert1('slotPriority.companyId', '소속회사')}"
+                    [editorOptions]="{  items: dsCompany,
+                                            displayExpr: 'display',
+                                            valueExpr: 'uid',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            openOnFieldClick: false,
+                                            showClearButton: true,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }">
+            <dxi-validation-rule type="required"
+                                 [message]="utilService.convert('com_valid_required', utilService.convert('slotPriority.companyId'))"></dxi-validation-rule>
+          </dxi-item>
+
+          <dxi-item dataField="ownerId"
+                    editorType="dxSelectBox"
+                    [label]="{text: utilService.convert1('mm_allocpriority_ownerId', '화주')}"
+                    [editorOptions]="{  items: dsOwnerId,
+                                            displayExpr: 'display',
+                                            valueExpr: 'uid',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            openOnFieldClick: false,
+                                            showClearButton: true,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }">
+            <dxi-validation-rule type="required"
+                                 [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_ownerId'))"></dxi-validation-rule>
+          </dxi-item>
+          <dxi-item dataField="allocPriorityKey"
+                    [label]="{text: utilService.convert1('mm_allocpriority_allocPriorityKey', '할당룰')}"></dxi-item>
+          <dxi-item dataField="name"
+                    [label]="{text: utilService.convert1('mm_allocpriority_name', '명칭')}"></dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('mm_allocpriority_mainGridTitle', '출고 룰 리스트')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainGridDataSource"
+                    (onRowDblClick)="onPopupOpen($event)"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [allowColumnReordering]="true"
+                    [showRowLines]="true"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true">
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true"
+                           type="custom"
+                           [customLoad]="loadState"
+                           [customSave]="saveState">
+        </dxo-state-storing>
+
+        <!-- Columns -->
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <!-- Entity의 Key 값 -->
+        <dxi-column name="No" caption="No" cellTemplate="NoTemplate" alignment="center" width="50"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+
+        <dxi-column dataField="warehouse" [caption]="utilService.convert1('mm_allocpriority_warehouse', '창고')"
+                    caption="창고" alignment="center"
+                    cssClass="grid-cell-required" width="150">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_warehouseId'))"></dxi-validation-rule>
+        </dxi-column>
+        <dxi-column dataField="warehouseName"
+                    [caption]="utilService.convert1('mm_allocpriority_warehouseName', '창고명')" width="150"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="ownerId" [caption]="utilService.convert1('mm_allocpriority_ownerId', '화주')" width="150"
+                    alignment="center">
+          <dxo-lookup [dataSource]="dsOwnerId" displayExpr="display" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="ownerName" [caption]="utilService.convert1('mm_allocpriority_ownerName', '화주명')"
+                    alignment="center" width="150"></dxi-column>
+        <dxi-column dataField="name" [caption]="utilService.convert1('mm_allocpriority_name', '명칭')"
+                    width="150"></dxi-column>
+
+        <dxi-column dataField="allocStyleType"
+                    [caption]="utilService.convert1('mm_allocpriority_allocStyleType', '할당단위')" alignment="center"
+                    width="100">
+          <dxo-lookup [dataSource]="dsAllocStyleType" displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="priority" [caption]="utilService.convert1('mm_allocpriority_priority', '할당우선순위')"
+                    alignment="center" width="100"></dxi-column>
+        <dxi-column dataField="objectName"
+                    [caption]="utilService.convert1('mm_allocpriority_objectName', '커스텀Class')"
+                    alignment="center" width="100"></dxi-column>
+
+        <dxi-column dataField="remarks"
+                    [caption]="utilService.convert1('mm_allocpriority_remarks', '비고')"></dxi-column>
+
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+<!-- Grid popup-->
+<dx-popup #popup
+          [(title)]="popupMode"
+          [dragEnabled]="true"
+          [resizeEnabled]="true"
+          (onShown)="onPopupAfterOpen()"
+          (onHidden)="onPopupAfterClose()"
+>
+  <dxi-toolbar-item toolbar="bottom" location="before">
+    <dx-button #deleteBtn
+               type="danger"
+               [text]="utilService.convert('com_btn_del')"
+               (onClick)="onPopupDelete()"
+    ></dx-button>
+  </dxi-toolbar-item>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <dx-button type="success"
+               [text]="utilService.convert('com_btn_save')"
+               (onClick)="onPopupSave()"
+    ></dx-button>
+    <dx-button type="normal"
+               [text]="utilService.convert('com_btn_close')"
+               (onClick)="onPopupClose()"
+    ></dx-button>
+  </dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupFormData"
+             labelLocation="left"
+             [showColonAfterLabel]="true"
+             [colCountByScreen]="{
+                  lg:3, md: 3, sm:1, xs:1
+               }"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group" [caption]="utilService.convert1('mm_allocpriority_grouptitle', '할당 룰 정보')"
+                [colCount]="3"
+                [colSpan]="3">
+        <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                  [editorOptions]="{ value: G_TENANT }"></dxi-item>
+        <dxi-item dataField="warehouseId"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('mm_allocpriority_warehouseId', '창고')}"
+                  [editorOptions]="{  items: dsWarehouseId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_warehouseId'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="companyId"
+                  editorType="dxSelectBox" [disabled]="true"
+                  [label]="{text: utilService.convert1('slotPriority.companyId', '소속회사')}"
+                  [editorOptions]="{  items: dsCompany,
+                                            displayExpr: 'display',
+                                            valueExpr: 'uid',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            openOnFieldClick: false,
+                                            showClearButton: true,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                                         }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('slotPriority.companyId'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="ownerId"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('mm_allocpriority_ownerId', '화주')}"
+                  [editorOptions]="{  items: dsOwnerId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_ownerId'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="allocPriorityKey"
+                  [label]="{text: utilService.convert1('mm_allocpriority_allocPriorityKey', '할당룰')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_allocPriorityKey'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="name" [label]="{text: utilService.convert1('mm_allocpriority_name', '명칭')}"></dxi-item>
+        <dxi-item dataField="allocStyleType"
+                  [label]="{text: utilService.convert1('mm_allocpriority_allocStyleType', '할당단위')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsAllocStyleType,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                  }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_allocStyleType'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="priority" [label]="{text: utilService.convert1('mm_allocpriority_priority', '할당우선순위')}"
+                  editorType="dxNumberBox"
+                  [editorOptions]="{format:'#,##0.####', max:99999999999999, step: 0}"></dxi-item>
+        <dxi-item dataField="objectName"
+                  [label]="{text: utilService.convert1('mm_allocpriority_objectName', '커스텀Class')}"></dxi-item>
+
+
+        <dxi-item dataField="orderByWhInDate"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('mm_allocpriority_orderByWhInDate', '입고일자')}"
+                  [editorOptions]="{  items: dsOrderBy,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_orderByWhInDate'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="orderByMngDate"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert1('mm_allocpriority_orderByMngDate', '관리일자')}"
+                  [editorOptions]="{  items: dsOrderBy,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_allocpriority_orderByMngDate'))"></dxi-validation-rule>
+        </dxi-item>
+
+        <dxi-item dataField="remarks" [label]="{text: utilService.convert1('mm_allocpriority_remarks', '비고')}"
+                  [colSpan]="2"></dxi-item>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>

@@ -1,0 +1,264 @@
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/poc/mapview')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+  </span>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <!--          <dxi-item dataField="key" [label]="{text: utilService.convert('inv_inOutHistory_key')}"-->
+          <!--                    [colSpan]="2"></dxi-item>-->
+          <dxi-item dataField="serial" [label]="{text: utilService.convert('so_so_serial')}"
+                    [colSpan]="2"></dxi-item>
+          <!--          <dxi-item itemType="empty" [colSpan]="4"></dxi-item>-->
+
+          <!--          <dxi-item dataField="supplierId" [label]="{text: utilService.convert('rcv.supplierId')}"-->
+          <!--                    editorType="dxSelectBox" [colSpan]="2"-->
+          <!--                    [editorOptions]="{-->
+          <!--                                    items: dsSupplier,-->
+          <!--                                    displayExpr: 'display',-->
+          <!--                                    valueExpr: 'uid',-->
+          <!--                                    searchMode:'contains',-->
+          <!--                                    searchEnabled: true,-->
+          <!--                                    showClearButton: true,-->
+          <!--                                    openOnFieldClick: false,-->
+          <!--                                    minSearchLength: 0,-->
+          <!--                                    placeholder: utilService.convert('rcv.supplierId'),-->
+          <!--                                    noDataText: utilService.convert('com_txt_noDataText')-->
+          <!--                                    }">-->
+          <!--          </dxi-item>-->
+          <!--          <dxi-item dataField="itemId" [label]="{text: utilService.convert('rcv.itemId')}" editorType="dxSelectBox"-->
+          <!--                    [colSpan]="2"-->
+          <!--                    [editorOptions]="{-->
+          <!--                                    items: dsItemId,-->
+          <!--                                    displayExpr: 'display',-->
+          <!--                                    valueExpr: 'uid',-->
+          <!--                                    searchMode:'contains',-->
+          <!--                                    searchEnabled: true,-->
+          <!--                                    showClearButton: true,-->
+          <!--                                    openOnFieldClick: false,-->
+          <!--                                    minSearchLength: 0,-->
+          <!--                                    placeholder: utilService.convert('rcv.itemId'),-->
+          <!--                                    noDataText: utilService.convert('com_txt_noDataText')-->
+          <!--                                    }">-->
+          <!--          </dxi-item>-->
+          <!--          <dxi-item itemType="group" [label]="{text: utilService.convert('rcv.receiveDate')}" cssClass="fromtocalendar"-->
+          <!--                    [colCount]="2" [colSpan]="2">-->
+          <!--            <dxi-item dataField="fromReceiveDate"-->
+          <!--                      editorType="dxDateBox"-->
+          <!--                      [label]="{visible: false}"-->
+          <!--                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">-->
+          <!--            </dxi-item>-->
+          <!--            <dxi-item dataField="toReceiveDate"-->
+          <!--                      editorType="dxDateBox"-->
+          <!--                      [label]="{text: '~'}"-->
+          <!--                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">-->
+          <!--            </dxi-item>-->
+          <!--          </dxi-item>-->
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <!--Grid-->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('/mm/mapview', 'Trace List', 'Trace List')">
+
+      <!--      <google-map-->
+      <!--        height="700px"-->
+      <!--        width="100%"-->
+      <!--        [zoom]="10"-->
+      <!--        [center]="center"-->
+      <!--        [options]="options"-->
+      <!--      >-->
+      <!--        <map-marker *ngFor="let spot of spots"-->
+      <!--                    [position]="{ lat: spot.lat, lng: spot.lng }"-->
+      <!--                    [options]="markerOptions"></map-marker>-->
+      <!--        <map-polyline [options]="polylineOptions">-->
+
+      <!--        </map-polyline>-->
+      <!--      </google-map>-->
+
+      <!--      <hr/>-->
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="dataSource"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [allowColumnResizing]="true"
+        [columnAutoWidth]="true"
+        [focusedRowEnabled]="true"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [allowColumnReordering]="true"
+        (onFocusedCellChanged)="onFocusedCellChanging($event, this.mainGrid)"
+        (onRowDblClick)="onRowDblClick($event)"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column name="No" caption="No" cellTemplate="NoTemplate" alignment="center"
+                    [width]="50"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="serial" caption="시리얼" width="250"></dxi-column>
+        <dxi-column dataField="createdDate" caption="최초매핑일" alignment="center" width="150"
+        ></dxi-column>
+        <dxi-column dataField="moveCount" caption="이동이력횟수" width="150"></dxi-column>
+        <dxi-column dataField="" [allowEditing]="false"></dxi-column>
+
+
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+<!-- Grid popup-->
+<dx-popup
+  #mainPopup
+  [(title)]="popupMode"
+  [closeOnOutsideClick]="false"
+  [dragEnabled]="true"
+  [resizeEnabled]="true"
+  [(visible)]="popupVisible"
+  (onShown)="popupShown($event)"
+  (onHidden)="popupClosed($event)"
+  [height]="820"
+>
+  <dxi-toolbar-item widget="dxButton"
+                    location="after"
+                    toolbar="bottom"
+                    [options]="{
+                      text: utilService.convert('com_btn_close'),
+                      stylingMode: 'outlined',
+                      type: 'normal',
+                      onClick: popupCancelClick
+                    }"
+  ></dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <!--    <dx-scroll-view width="100%" height="100%">-->
+    <google-map
+      height="400px"
+      width="100%"
+      [zoom]="zoomValue"
+      [center]="centerPopup"
+      [options]="options"
+    >
+      <map-marker *ngFor="let spot of spotsPopup"
+                  [position]="{ lat: spot.lat, lng: spot.lng }"
+                  [options]="markerOptions"></map-marker>
+      <map-polyline [options]="polylineOptionsPopup"></map-polyline>
+    </google-map>
+    <hr/>
+    <!--Grid-->
+    <dx-data-grid
+      #gridPopup
+      [dataSource]="dataSourcePopup"
+      (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+      (onFocusedCellChanged)="onFocusedCellChanging($event, this.gridPopup)"
+      (onFocusedRowChanging)="onFocusedRowChanged($event)"
+      [allowColumnResizing]="true"
+      [columnAutoWidth]="true"
+      [focusedRowEnabled]="true"
+      [showRowLines]="true"
+      [rowAlternationEnabled]="true"
+      [allowColumnReordering]="true"
+      [height]="300"
+      (onExporting)="gridUtil.onPageExportXlsx($event)"
+      columnResizingMode=nextColumn
+    >
+      <dxo-editing mode="batch"></dxo-editing>
+      <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+      <dxo-load-panel [enabled]="true"></dxo-load-panel>
+      <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+      <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+      <dxo-scrolling [useNative]="false" [scrollByContent]="true" [scrollByThumb]="true"
+                     showScrollbar="onHover"></dxo-scrolling>
+      <dxo-search-panel
+        [visible]="true"
+        [width]="240"
+        [placeholder]="''"></dxo-search-panel>
+      <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+      <dxo-pager
+        [visible]="true"
+        [allowedPageSizes]=gridUtil.getAllowedPageSize()
+        [displayMode]="'full'"
+        [showPageSizeSelector]="true"
+        [showInfo]="true"
+        [showNavigationButtons]="true"
+      >
+      </dxo-pager>
+      <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStatePopup"
+                         [customSave]="saveStatePopup"></dxo-state-storing>
+      <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                  [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+      <dxi-column dataField="latitude" [caption]="utilService.convert1('위도', '위도')" [visible]="false"
+                  [allowSearch]="false"
+                  [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+      <dxi-column dataField="longitude" [caption]="utilService.convert1('경도', '경도')" [visible]="false"
+                  [allowSearch]="false"
+                  [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+
+      <dxi-column dataField="txType" [caption]="utilService.convert1('전표유형', '전표유형')"></dxi-column>
+      <dxi-column dataField="key" [caption]="utilService.convert1('전표번호', '전표번호')"></dxi-column>
+      <dxi-column dataField="lineNo" [caption]="utilService.convert1('전표상세번호', '전표상세번호')"></dxi-column>
+      <dxi-column dataField="serial" [caption]="utilService.convert1('Serial', 'Serial')"></dxi-column>
+      <dxi-column dataField="latLong" [caption]="utilService.convert1('위도/경도', '위도/경도')"></dxi-column>
+    </dx-data-grid>
+    <!--    </dx-scroll-view>-->
+  </div>
+</dx-popup>

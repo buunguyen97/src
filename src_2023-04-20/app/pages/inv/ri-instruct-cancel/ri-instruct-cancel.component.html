@@ -1,0 +1,308 @@
+<!-- 재고 > 로케이션이동지시취소 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/inv/riInstructCancel')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+
+  <span class="btngroup page-button-group">
+      <dx-button icon="check"
+                 type="default"
+                 [text]="utilService.convert1('riinstruct_button_instructcancle','지시취소')"
+                 (onClick)="onExcute()"
+      ></dx-button>
+  </span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               labelLocation="left"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+
+          <dxi-item dataField="locationId"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_riInstructCancle_locationId', '로케이션')}"
+                    [editorOptions]="{  items: dsLocation,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"></dxi-item>
+
+          <!--          <dxi-item dataField="relocateSts"-->
+          <!--                    editorType="dxSelectBox" [colSpan]="2"-->
+          <!--                    [label]="{text: utilService.convert1('inv_riInstructCancle_relocateSts', '상태')}"-->
+          <!--                    [editorOptions]="{  items: dsRelocateSts,-->
+          <!--                                      displayExpr: 'display',-->
+          <!--                                      valueExpr: 'code',-->
+          <!--                                      searchMode:'contains',-->
+          <!--                                      searchEnabled: true,-->
+          <!--                                      openOnFieldClick: false,-->
+          <!--                                      showClearButton: true,-->
+          <!--                                      minSearchLength: 0,-->
+          <!--                                      placeholder: '',-->
+          <!--                                      noDataText: utilService.convert('com_txt_noDataText')-->
+          <!--                                   }"></dxi-item>-->
+          <!--          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>-->
+          <dxi-item dataField="itemId"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_riInstructCancle_itemId', '품목')}"
+                    [editorOptions]="{  items: dsFilteredItemId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"></dxi-item>
+          <dxi-item dataField="spec"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [label]="{text: utilService.convert1('pt_prod_prog_status.spec', '규격')}"
+                    [editorOptions]="{  items: dsSpec,
+                                      displayExpr: 'spec',
+                                      valueExpr: 'spec',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"></dxi-item>
+          <dxi-item dataField="relocateKey" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_riInstructCancle_relocateKey', '이동지시키')}">
+          </dxi-item>
+
+          <dxi-item itemType="empty" [colSpan]="4"></dxi-item>
+
+          <dxi-item dataField="warehouseId" [colSpan]="2"
+                    editorType="dxSelectBox" [disabled]="true"
+                    [label]="{text: utilService.convert1('inv_riInstructCancle_warehouseId', '창고')}"
+                    [editorOptions]="{  items: dsWarehouseId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0
+                                   }">
+          </dxi-item>
+          <dxi-item dataField="ownerId" [colSpan]="2"
+                    editorType="dxSelectBox" [disabled]="true"
+                    [label]="{text: utilService.convert1('inv_riInstructCancle_ownerId', '화주')}"
+                    [editorOptions]="{  items: dsOwnerId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0
+                                   }"></dxi-item>
+          <dxi-item dataField="itemAdminId" [colSpan]="2"
+                    [label]="{text: utilService.convert1('inv_riInstructCancle_itemAdminId', '품목관리사')}"
+                    editorType="dxSelectBox" [disabled]="true"
+                    [editorOptions]="{
+                                                items: dsItemAdminId,
+                                                displayExpr: 'display',
+                                                valueExpr: 'uid',
+                                                searchMode:'contains',
+                                                searchEnabled: true,
+                                                openOnFieldClick: false,
+                                                showClearButton: true,
+                                                minSearchLength: 0
+                                                }"></dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert1('com_btn_reset', '초기화', 'Reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()"
+        ></dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+
+  <!--Grid-->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('inv_riInstructCancle_mainGridTitle','로케이션 이동 지시 취소')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainGridDataSource"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    [(selectedRowKeys)]="selectedRows"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    (onFocusedCellChanged)="onFocusedCellChanging($event)"
+                    [showRowLines]="true"
+                    [rowAlternationEnabled]="true"
+                    [allowColumnReordering]="true"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"
+                     [allowUpdating]="false"
+                     [(changes)]="changes"
+                     [selectTextOnEditStart]="true"
+        ></dxo-editing>
+        <dxo-selection mode="single" selectAllMode="allPages"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>  <!-- 조회 시 조회 패널 표시 여부 -->
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>   <!-- 컬럼 숨김, 보이기 하는 패널 표시 -->
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>  <!-- Excel Export 기능 유무 -->
+        <dxo-search-panel
+          [visible]="true"
+          [width]="200"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState"
+                           [customSave]="saveState"></dxo-state-storing>
+
+        <!-- Columns -->
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false" Width="50"></dxi-column>
+        <dxi-column dataField="logicalKey" caption="logicalKey" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false" Width="50"></dxi-column>
+        <!-- Entity의 Key 값 -->
+        <dxi-column dataField="tenant" caption="태넌트" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false"></dxi-column>
+
+        <!--    <dxi-column dataField="number" caption="NO" ></dxi-column>-->
+        <dxi-column name="No" caption="No" cellTemplate="NoTemplate" alignment="center" width="50"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+
+        <dxi-column dataField="relocateBatchKey"
+                    [caption]="utilService.convert1('inv_riInstructCancle_relocateBatchKey', ' 이동지시키')"
+                    [allowSearch]="false" [showInColumnChooser]="false"
+                    [allowEditing]="false" alignment="center"></dxi-column>
+        <dxi-column dataField="relocateSts"
+                    [caption]="utilService.convert1('inv_riInstructCancle_relocateSts', ' 상태')" alignment="center">
+          <dxo-lookup [dataSource]=dsRelocateSts displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemAdminId"
+                    [caption]="utilService.convert1('inv_riInstructCancle_itemAdminId', ' 품목관리사')"
+                    [allowSearch]="false" [showInColumnChooser]="false" [visible]="false"
+                    [allowEditing]="false" alignment="left">
+          <dxo-lookup [dataSource]="dsItemAdminId" displayExpr="display" valueExpr="uid"
+                      placeholder="utilService.convert1('inv_riInstructCancle_itemAdminId', ' 품목관리사')">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemId" [caption]="utilService.convert1('inv_riInstructCancle_itemId', ' 품목')"
+                    [allowSearch]="false" [showInColumnChooser]="false"
+                    [allowEditing]="false" alignment="left" [setCellValue]="setItemValue">
+          <dxo-lookup [dataSource]="dsItemId" displayExpr="display" valueExpr="uid">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="unit" [caption]="utilService.convert1('inv_riInstruct_unit3Stylecd', '단위')"
+                    [allowSearch]="false" [showInColumnChooser]="false" alignment="center"
+                    [allowEditing]="false">
+          <dxo-lookup [dataSource]="dsItemId" displayExpr="unit3Stylecd" valueExpr="uid">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="spec" [caption]="utilService.convert1('pt_prod_prog_status.spec', '규격')"
+                    [allowEditing]="false"></dxi-column>
+
+        <dxi-column dataField="damageFlg"
+                    [caption]="utilService.convert1('inv_riInstructCancle_damageFlg', '불량여부')" alignment="center"
+                    [allowEditing]="false">
+          <dxo-lookup [dataSource]="dsDamageFlg" displayExpr="codeName" valueExpr="code"
+                      placeholder="utilService.convert1('inv_riInstructCancle_damageFlg')">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="whInDate" dataType="date" format="yyyy-MM-dd" alignment="center"
+                    [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}"
+                    [caption]="utilService.convert('so_so_whInDate', '입고일자', 'In Date')"
+                    [allowEditing]="false">
+        </dxi-column>
+        <dxi-column dataField="fromLocId"
+                    [caption]="utilService.convert1('inv_riInstructCancle_fromLocId', ' 이동전로케이션')" alignment="left"
+                    [allowEditing]="false"
+        >
+          <dxo-lookup [dataSource]="dsLocId" displayExpr="display" valueExpr="uid"
+                      placeholder="utilService.convert1('inv_riInstructCancle_fromLocId')">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="toLocId" [caption]="utilService.convert1('inv_riInstructCancle_toLocId', ' 이동후로케이션')"
+                    alignment="left" [allowEditing]="false">
+          <dxo-lookup [dataSource]="dsLocId" displayExpr="display" valueExpr="uid"
+                      placeholder="utilService.convert1('inv_riInstructCancle_toLocId')">
+          </dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="instructQty"
+                    [caption]="utilService.convert1('inv_riInstructCancle_instructQty', ' 이동수량')"
+                    format='#,##0.####'
+                    alignment="right" [allowEditing]="false">
+        </dxi-column>
+
+
+        <!--    <dxi-column dataField="qty1" caption="이동수량" [editorOptions]="{format:'#,##0.####', step:0}"-->
+        <!--                alignment="center"></dxi-column>-->
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false"
+                    alignment="left" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" alignment="left" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

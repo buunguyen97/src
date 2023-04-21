@@ -1,0 +1,108 @@
+<!--
+  ~ Copyright (c) 2021 JFLab All rights reserved.
+  ~ File Name : login-form.component.html
+  ~ Author : jbh5310
+  ~ Lastupdate : 2021-09-01 14:00:58
+  -->
+
+<form class="login-form">
+  <dx-form id="loingForm" [(formData)]="formData" (onEditorEnterKey)="onEnterKey($event)">
+
+    <dxi-item dataField="Country" editorType="dxSelectBox"
+              [editorOptions]="{dataSource: country, onValueChanged: this.countryChanged, valueExpr:'code', displayExpr:'value', icon: 'icon'}">
+      <dxo-label [visible]="false"></dxo-label>
+    </dxi-item>
+
+    <dxi-item dataField="TimeZone" editorType="dxSelectBox"
+              [editorOptions]="{items: tzNames}">
+      <dxo-label [visible]="false"></dxo-label>
+    </dxi-item>
+
+    <dxi-item dataField="tenant" editorType="dxTextBox"
+              [editorOptions]="{ stylingMode: 'filled', placeholder: 'Tenant'   }">
+      <dxi-validation-rule type="required" message="tenant is required"></dxi-validation-rule>
+      <dxi-validation-rule type="stringLength" [min]="4"
+                           message="Tenant must be at least 4 characters."></dxi-validation-rule>
+      <dxo-label [visible]="false"></dxo-label>
+    </dxi-item>
+
+    <dxi-item dataField="id" editorType="dxTextBox"
+              [editorOptions]="{ stylingMode: 'filled', placeholder: 'ID'}">
+      <dxi-validation-rule type="required" message="id is required"></dxi-validation-rule>
+      <dxi-validation-rule type="stringLength" [min]="4"
+                           message="ID must be at least 4 characters."></dxi-validation-rule>
+      <dxo-label [visible]="false"></dxo-label>
+    </dxi-item>
+
+    <dxi-item dataField="password" editorType="dxTextBox"
+              [editorOptions]="{ stylingMode: 'filled', placeholder: 'Password', mode: 'password'}"
+    >
+      <dxi-validation-rule type="required" message="password is required"></dxi-validation-rule>
+      <dxo-label [visible]="false"></dxo-label>
+    </dxi-item>
+
+    <!--    <dxi-item dataField="rememberMe" editorType="dxCheckBox"-->
+    <!--              [editorOptions]="{ text: 'Remember me', elementAttr: { class: 'form-text' }}">-->
+    <!--      <dxo-label [visible]="false"></dxo-label>-->
+    <!--    </dxi-item>-->
+
+    <dxi-item itemType="button">
+      <dxo-button-options text="Sign In" width="100%" type="default" [onClick]="onSubmit">
+      </dxo-button-options>
+    </dxi-item>
+
+    <dxi-item>
+      <div class="link">
+        <a (click)="returnMSG()">Forgot password?</a>
+      </div>
+    </dxi-item>
+    <!-- routerLink="reset-password"-->
+
+    <dxi-item itemType="button">
+      <dxo-button-options text="Create an account" width="100%" [onClick]="onCreateAccountClick"
+                          [elementAttr]="{ class: 'login-create-account' }"></dxo-button-options>
+    </dxi-item>
+
+  </dx-form>
+</form>
+
+
+<dx-popup #pwdPopup
+          [closeOnOutsideClick]="false"
+          [dragEnabled]="true"
+          [visible]="false"
+          [showCloseButton]="false"
+          (onHidden)="onHidden()"
+          [title]="utilService.convert('mm_user_btn_chnPwd')"
+          height="200px"
+          width="400px"
+>
+  <dxi-toolbar-item widget="dxButton"
+                    location="center"
+                    toolbar="bottom"
+                    [options]="{
+                      text: utilService.convert('com_btn_save'),
+                      type: 'success',
+                      onClick: pwdPopupSaveClick
+                    }"></dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #pwdPopupForm
+             [(formData)]="pwdPopupData"
+             [showColonAfterLabel]="true"
+             labelLocation="left"
+    >
+      <dxi-item dataField="password" [editorOptions]="{mode: 'password'}"
+                [label]="{text: utilService.convert('mm_user_pop_currentPwd')}" [visible]="false"></dxi-item>
+      <dxi-item dataField="changePassword" [editorOptions]="{mode: 'password'}"
+                [label]="{text: utilService.convert('mm_user_pop_newPwd')}"></dxi-item>
+      <dxi-item dataField="checkPassword" [editorOptions]="{mode: 'password'}"
+                [label]="{text: utilService.convert('mm_user_pop_confirmPwd')}">
+        <dxi-validation-rule type="compare"
+                             [comparisonTarget]="passwordComparison"
+                             [message]="utilService.convert('mm_user_confirmMsg')"
+        ></dxi-validation-rule>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>

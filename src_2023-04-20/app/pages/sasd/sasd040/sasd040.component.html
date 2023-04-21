@@ -1,0 +1,239 @@
+<div class="contents-header">
+    <h2 class="content-block page-title">{{utilService.convert1('/sasd/sasd040', '모듈bom등록')}}</h2>
+    <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+    <span class="btngroup page-button-group">
+        <dx-button icon="add"
+                   id="Open"
+                   type="default"
+                   [text]="utilService.convert('com_btn_new')"
+                   (onClick)="onNew($event)"
+        ></dx-button>
+    </span>
+    <hr />
+</div>
+<div class="contents-body">
+    <div class="search_foldable">
+        <div class="search-box">
+            <dx-form #mainForm
+                     class="search-form-box"
+                     (onEditorEnterKey)="onSearch()"
+                     [(formData)]="mainData"
+                     [minColWidth]="300"
+                     [colCount]="6"
+                     [showColonAfterLabel]="false"
+                     [colCountByScreen]="{ lg:6, md: 6, sm:3, xs:3 }">
+                <dxi-item itemType="group"
+                      [colCount]="6"
+                      [colSpan]="6">
+                    <dxi-item dataField="item_cd" [label]="{text: utilService.convert1('sales.item_cd', '품목')}" [colSpan]="2"></dxi-item>
+                    <dxi-item dataField="item_nm" [label]="{text: utilService.convert1('sales.item_nm', '품목명', 'Item Name')}" [colSpan]="2"></dxi-item>
+                </dxi-item>
+            </dx-form>
+            <div class="search-btn-group">
+<!--                <dx-button icon="check"-->
+<!--                           type="default"-->
+<!--                           [text]="utilService.convert('com_btn_reset')"-->
+<!--                           class="reset-btn"-->
+<!--                           (onClick)="onReset()">-->
+<!--                </dx-button>-->
+                <dx-button icon="check"
+                           type="default"
+                           [text]="utilService.convert('com_btn_search')"
+                           class="search-btn"
+                           (onClick)="onSearch()">
+                </dx-button>
+            </div>
+        </div>
+    </div>
+    <dx-accordion [collapsible]="true" [multiple]="true" [animationDuration]="300">
+        <dxi-item [title]="utilService.convert1('sales.module_bom_list', '모듈 BOM 리스트', 'Module BOM List')">
+            <dx-data-grid #mainGrid
+                          [dataSource]="dataSource"
+                          (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                          (onRowDblClick)="rowDblClick($event)"
+                          [allowColumnResizing]="true"
+                          [columnAutoWidth]="true"
+                          [focusedRowEnabled]="false"
+                          [rowAlternationEnabled]="true"
+                          [showRowLines]="true"
+                          columnResizingMode=nextColumn>
+                <dxo-editing mode="batch"></dxo-editing>
+                <dxo-selection mode="single"></dxo-selection>
+                <dxo-load-panel [enabled]="true"></dxo-load-panel>
+                <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+                <dxo-export [enabled]="true"></dxo-export>
+                <dxo-search-panel [visible]="true"
+                                  [width]="240"
+                                  [placeholder]="''">
+                </dxo-search-panel>
+                <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+                <dxo-pager [visible]="true"
+                           [allowedPageSizes]="gridUtil.getAllowedPageSize()"
+                           [displayMode]="'full'"
+                           [showPageSizeSelector]="true"
+                           [showInfo]="true"
+                           [showNavigationButtons]="true">
+                </dxo-pager>
+                <dxo-state-storing [enabled]="true"
+                                   type="custom">
+                </dxo-state-storing>
+                <!-- Columns -->
+                <!-- Entity의 Key 값 -->
+                <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+		        <div *dxTemplate="let data of 'NoTemplate'">
+		          {{ data.rowIndex + 1}}
+		        </div>
+                <dxi-column dataField="item_cd" [caption]="utilService.convert1('sales.item', '품목', 'Item')" alignment="center"></dxi-column>
+                <dxi-column dataField="item_nm" [caption]="utilService.convert1('sales.item_nm', '품목명', 'Item Name')"></dxi-column>
+                <dxi-column dataField="count"   [caption]="utilService.convert1('sales.module_sku', '모듈 SKU', 'Module SKU')" format="#,##0"></dxi-column>
+                <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                            [allowEditing]="false" [visible]="false">
+                  <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+                </dxi-column>
+                <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                            [allowEditing]="false" [visible]="false"></dxi-column>
+                <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                            [allowEditing]="false" [visible]="false">
+                  <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+                </dxi-column>
+                <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                            [allowEditing]="false" [visible]="false"></dxi-column>
+            </dx-data-grid>
+        </dxi-item>
+    </dx-accordion>
+</div>
+
+<!-- Grid popup-->
+<dx-popup #popup
+          [(title)]="popupMode"
+          [width]="870"
+          [height]="600"
+          [dragEnabled]="true"
+          (onShown)="popupShown($event)"
+          (onHidden)="popupHidden($event)">
+    <dxi-toolbar-item toolbar="bottom" location="before">
+        <dx-button #deleteBtn
+                    type="danger"
+                    [text]="utilService.convert('com_btn_del')"
+                    (onClick)="popupDeleteClick($event)">
+        </dx-button>
+    </dxi-toolbar-item>
+    <dxi-toolbar-item #saveBtn
+                      widget="dxButton"
+                      location="after"
+                      toolbar="bottom"
+                      [options]="{ text: utilService.convert('com_btn_save')
+                                 , type: 'success'
+                                 , onClick: popupSaveClick
+                      }">
+    </dxi-toolbar-item>
+    <dxi-toolbar-item widget="dxButton"
+                      location="after"
+                      toolbar="bottom"
+                      [options]="{ text: utilService.convert('com_btn_close')
+                                 , stylingMode: 'outlined'
+                                 , type: 'normal'
+                                 , onClick: popupCancelClick}">
+    </dxi-toolbar-item>
+    <div *dxTemplate="let data of 'content'">
+        <dx-form #popupForm
+                 [(formData)]="popupData"
+                 [showColonAfterLabel]="false"
+                 [colCountByScreen]="{ lg:4, md: 4, sm:2, xs:2 }">
+            <!-- Master -->
+            <dxi-item itemType="group" [caption]="utilService.convert1('sales.module_bom_dtl', '모듈 BOM 상세', 'Module BOM Detail')" [colCount]="2" [colSpan]="4">
+                <!-- popup input -->
+                <dxi-item dataField="item_cd"
+                          editorType="dxSelectBox"
+                          [label]="{text: utilService.convert1('sales.item', '품목', 'Item')}"
+                          [editorOptions]="{  items: dsItemcode
+                                            , displayExpr: 'display'
+                                            , valueExpr: 'cd'
+                                            , searchMode:'contains'
+                                            , searchEnabled: true
+                                            , showClearButton: true
+                                            , openOnFieldClick: false
+                                            , placeholder:''
+                                            , noDataText: utilService.convert('com_txt_noDataText')
+                                            , onValueChanged: onChagedItemCd
+                                           }">
+                    <dxi-validation-rule type="required" [message]="utilService.convert1('sales.item', '품목', 'Item')"></dxi-validation-rule>
+                </dxi-item>
+              <dxi-item itemType="empty"></dxi-item>
+              <dxi-item dataField="sale_krw_pr" [label]="{text: utilService.convert1('sales.sale_krw_pr', '표준소비자가(KRW)', 'Standard Consumer(KRW)')}"
+                        editorType="dxNumberBox" [editorOptions]="{format:'#,##0'}" [disabled]="true"></dxi-item>
+              <dxi-item dataField="sale_usd_pr" [label]="{text: utilService.convert1('sales.sale_usd_pr', '표준소비자가(USD)', 'Standard Consumer(USD)')}"
+                        editorType="dxNumberBox" [editorOptions]="{format:'#,##0'}" [disabled]="true"></dxi-item>
+            </dxi-item>
+            <!-- Detail Grid -->
+            <dxi-item [caption]="utilService.convert1('sales.module_item_list', '모듈품목 리스트', 'Module Item List')" itemType="group" [colCount]="3" [colSpan]="4">
+                <dx-data-grid #popupGrid
+                              [(dataSource)]="popupDataSource"
+                              (onToolbarPreparing)="gridUtil.onToolbarPreparingWithComBtn($event, this, addClick, deleteClick)"
+                              [(selectedRowKeys)]="selectedRows"
+                              (onFocusedCellChanged)="onFocusedCellChangedPopupGrid($event, this.popupGrid)"
+                              (onEditorPreparing)="onEditorPreparing($event, this.popupGrid)"
+                              [showRowLines]="true"
+                              [rowAlternationEnabled]="true"
+                              [columnAutoWidth]="true"
+                              [allowColumnResizing]="true"
+                              [focusedRowEnabled]="true"
+                              (onInitNewRow)="onInitNewRow($event)"
+                              [height]="280"
+                              columnResizingMode=nextColumn>
+                    <dxo-editing mode="batch"
+                                 newRowPosition="last"
+                                 [allowUpdating]="true"
+                                 [allowAdding]="true"
+                                 [(changes)]="changes">
+                    </dxo-editing>
+                    <dxo-selection      mode	  = "single"></dxo-selection>
+                    <dxo-load-panel     [enabled] = "true"></dxo-load-panel>
+                    <dxo-column-chooser [enabled] = "true"></dxo-column-chooser>
+                    <dxo-export         [enabled] = "true"></dxo-export>
+                    <dxo-search-panel   [visible] = "true"
+                                        [width] = "240"
+                                        [placeholder] = "''">
+                    </dxo-search-panel>
+                    <dxo-state-storing type = "custom"
+                                       [enabled] = "true"
+                                       [customLoad] = "loadStatePopup"
+                                       [customSave] = "saveStatePopup">
+                    </dxo-state-storing>
+                    <!-- Columns -->
+                    <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate" alignment="center"></dxi-column>
+                    <div *dxTemplate="let data of 'NoTemplate'">
+                        {{ data.rowIndex + 1}}
+                    </div>
+                    <dxi-column dataField="m_item_cd"
+                                [caption]="utilService.convert1('sales.module_item', '모듈품목', 'Module Item')"
+                                cssClass="grid-cell-required">
+                        <dxo-lookup [dataSource]= "dsItemcode2"
+                                    displayExpr = "display"
+                                    valueExpr	= "cd">
+                        </dxo-lookup>
+                    </dxi-column>
+                    <dxi-column dataField="c_qty"
+                        [caption]="utilService.convert1('sales.qty', '수량', 'Qty')"
+                        cssClass="grid-cell-required"
+                        format="#,##0.####"
+                        dataType="number">
+                    </dxi-column>
+                  <dxi-column dataField="sale_krw_pr"
+                              [caption]="utilService.convert1('sales.sale_krw_pr', '표준소비자가(KRW)', 'Standard Consumer(KRW)')"
+                              cssClass="grid-cell-required"
+                              format="#,##0.####"
+                              dataType="number">
+                  </dxi-column>
+                  <dxi-column dataField="sale_usd_pr"
+                              [caption]="utilService.convert1('sales.sale_usd_pr', '표준소비자가(USD)', 'Standard Consumer(USD)')"
+                              cssClass="grid-cell-required"
+                              format="#,##0.####"
+                              dataType="number">
+                  </dxi-column>
+                </dx-data-grid>
+            </dxi-item>
+        </dx-form>
+    </div>
+</dx-popup>

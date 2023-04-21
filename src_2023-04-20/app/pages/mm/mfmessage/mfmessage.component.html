@@ -1,0 +1,156 @@
+<!-- MM > 메세지 -->
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/mm/mfmessage')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+      <dx-button icon="check"
+                 type="default"
+                 [text]="utilService.convert('com_btn_save')"
+                 (onClick)="saveClick()">
+      </dx-button>
+    </span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [colCountByScreen]="{
+                           lg:3, md: 3, sm:1, xs:1
+                   }"
+      >
+        <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item dataField="messageKey"
+                    [label]="{text: utilService.convert1('mm_mfmessage_messageKey', '메세지코드')}">
+            <!--                <dxi-validation-rule type="stringLength" [max]="50"-->
+            <!--                                     message="메세지코드는 50자 이하로 입력하세요."></dxi-validation-rule>-->
+          </dxi-item>
+          <dxi-item dataField="ko" [label]="{text: utilService.convert1('mm_mfmessage_ko', '메시지(한국어)')}">
+            <!--                <dxi-validation-rule type="stringLength" [max]="100"-->
+            <!--                                     message="메시지는 100자 이하로 입력하세요."></dxi-validation-rule>-->
+          </dxi-item>
+          <dxi-item dataField="remarks"
+                    [colSpan]="4" [label]="{text: utilService.convert('so_so_remarks')}"
+                    [editorOptions]="{
+                                      placeholder: 'Common',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <!--Grid-->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('mm_mfmessage_mainGridTitle', '메시지 리스트')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="dataSource"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparingWithComBtn($event, this, this.addClick, this.deleteClick)"
+        [(selectedRowKeys)]="selectedRows"
+        [allowColumnResizing]="true"
+        [columnAutoWidth]="false"
+        [focusedRowEnabled]="true"
+        (onFocusedCellChanged)="onFocusedCellChanging($event)"
+        [rowAlternationEnabled]="true"
+        [allowColumnReordering]="true"
+        [showRowLines]="true"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"
+                     [allowUpdating]="true"
+                     [(changes)]="changes"
+                     [selectTextOnEditStart]="true"
+                     [newRowPosition]="'last'"
+        ></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState"
+                           [customSave]="saveState"></dxo-state-storing>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column name="No" caption="No" cellTemplate="NoTemplate" alignment="center" [width]="50"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="messageKey" [caption]="utilService.convert1('mm_mfmessage_messageKey', '메세지코드')"
+                    [width]="300">
+          <!--              <dxi-validation-rule type="stringLength" [max]="50" message="메세지코드은 50자 이하로 입력하세요."></dxi-validation-rule>-->
+        </dxi-column>
+        <dxi-column dataField="ko" [caption]="utilService.convert1('mm_mfmessage_ko', '한국어')" width="250">
+          <!--              <dxi-validation-rule type="stringLength" [max]="200" message="한국어 200자 이하로 입력하세요."></dxi-validation-rule>-->
+        </dxi-column>
+        <dxi-column dataField="en" [caption]="utilService.convert1('mm_mfmessage_en', '영어')" width="250"></dxi-column>
+        <dxi-column dataField="cn" [caption]="utilService.convert1('mm_mfmessage_cn', '중국어')" width="250"
+                    [visible]="false"></dxi-column>
+        <dxi-column dataField="jp" [caption]="utilService.convert1('mm_mfmessage_jp', '일본어')" width="250"
+                    [visible]="false"></dxi-column>
+
+        <dxi-column dataField="etc1" [caption]="utilService.convert1('mm_mfmessage_etc1', '기타언어1')" width="250"
+                    [visible]="false"></dxi-column>
+        <dxi-column dataField="etc2" [caption]="utilService.convert1('mm_mfmessage_etc2', '기타언어2')" width="250"
+                    [visible]="false"></dxi-column>
+
+        <dxi-column dataField="remarks" [caption]="utilService.convert1('mm_mfmessage_remarks', '비고')">
+          <!--      <dxi-validation-rule type="stringLength" [max]="255" message="비고는 255자 이하로 입력하세요."></dxi-validation-rule>-->
+        </dxi-column>
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false"
+                    alignment="left" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" alignment="left" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

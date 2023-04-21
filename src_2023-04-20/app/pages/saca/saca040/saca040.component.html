@@ -1,0 +1,381 @@
+<!-- 영업 > 전자세금계산서현황 saca040 -->
+
+<div class="contents-header">
+  <!-- Header Title START -->
+  <h2 class="content-block page-title">{{utilService.convert('/saca/saca040')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <!-- Header Title END -->
+  <!-- 버튼 그룹 START (조회 버튼 제외 - 조회버튼은 조회영역에 삽입) -->
+  <span class="btngroup page-button-group">
+        <!-- 세금계산서 양식 다운로드  -->
+        <dx-button icon="export"
+                   type="default"
+                   [text]="utilService.convert1('sales.invoice_export','세금계산서 양식 다운로드', 'Download Tax Invoice Form')"
+                   (onClick)="onInvoiceDownloadClick($event)"
+        ></dx-button>
+
+        <!-- 세금계산서 결과 업로드  -->
+        <dx-button icon="save"
+                   type="default"
+                   [text]="utilService.convert1('sales.invoice_upload','세금계산서 결과 업로드', 'Upload Tax Invoice Results')"
+                   (onClick)="onInvoiceUploadClick($event)"
+        ></dx-button>
+  </span>
+  <!-- 버튼 그룹 END -->
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [height]="63"
+               [colCount]="3"
+               (onEditorEnterKey)="onSearch()"
+               [colCountByScreen]="{lg:6, md: 6, sm:3, xs:1}"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+
+          <dxi-item itemType="group"
+                    [label]="{text: utilService.convert1('sales.cls_mon', '마감년월', 'Closing Date')}"
+                    [colSpan]="2">
+            <dx-date-box name="clsYM"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM"
+                         dateSerializationFormat="yyyy-MM"
+                         [value]="now"
+                         [calendarOptions]="{useMaskBehavior:'true', zoomLevel: 'year',  maxZoomLevel: 'year'}">
+            </dx-date-box>
+          </dxi-item>
+
+          <dxi-item dataField="exptCd" [label]="{text: utilService.convert1('sales.coll_expt_cd', '정산수출사', 'Settlement Exporter')}"  editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsExptCd,
+                                        displayExpr: 'display',
+                                        valueExpr: 'cd',
+                                        searchMode:'contains',
+                                        searchEnabled: true,
+                                        showClearButton: true,
+                                        openOnFieldClick: false,
+                                        minSearchLength: 0,
+                                        placeholder: '',
+                                        noDataText: utilService.convert('com_txt_noDataText')
+                    }">
+          </dxi-item>
+
+          <dxi-item dataField="ordGb" [label]="{text: utilService.convert1('sales.ord_gb', '주문구분', 'Order Class')}"  editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsOrdGb,
+                                        displayExpr: 'nm',
+                                        valueExpr: 'cd',
+                                        searchMode:'contains',
+                                        searchEnabled: true,
+                                        showClearButton: true,
+                                        openOnFieldClick: false,
+                                        minSearchLength: 0,
+                                        placeholder: '',
+                                        noDataText: utilService.convert('com_txt_noDataText')
+                    }">
+          </dxi-item>
+
+          <dxi-item dataField="invoiceType" [label]="{text: utilService.convert1('sales.invoice_type', '발행구분', 'Tax Invoice Issuance Type')}"  editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsInvoiceFg,
+                                        displayExpr: 'nm',
+                                        valueExpr: 'cd',
+                                        searchMode:'contains',
+                                        searchEnabled: true,
+                                        showClearButton: true,
+                                        openOnFieldClick: false,
+                                        minSearchLength: 0,
+                                        placeholder: '',
+                                        noDataText: utilService.convert('com_txt_noDataText')
+                    }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()"
+        ></dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <!--
+    <div class="foldable-btn">
+      <dx-button #foldableBtn icon="chevronup" type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm)"></dx-button>
+    </div>
+    -->
+  </div>
+
+  <dx-accordion [collapsible]="true"
+                [multiple]="false"
+                [animationDuration]="300"
+  >
+    <dxi-item [title]="utilService.convert1('sales.sales_invoice_list', '전자세금계산서 리스트', 'Tax Invoice List')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="dsMainGrid"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        (onFocusedCellChanged)="onFocusedCellChanging($event, this.mainGrid)"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [columnAutoWidth]="true"
+        [allowColumnResizing]="true"
+        [focusedRowEnabled]="true"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                   ></dxi-column>
+        <dxi-column dataField="col1" [caption]="'전자(세금)계산서 종류\n(01:일반, 02:영세율)'" headerCellTemplate="headerTemplateCol1"></dxi-column>
+        <div *dxTemplate="let data of 'headerTemplateCol1'">
+          <div>전자(세금)계산서 종류<br>(01:일반, 02:영세율)</div>
+        </div>
+        <dxi-column dataField="col2" [caption]="'작성일자'"></dxi-column>
+        <dxi-column dataField="col3" [caption]="'공급자 등록번호 \n(&quot;-&quot; 없이 입력)'" headerCellTemplate="headerTemplateCol3"></dxi-column>
+        <div *dxTemplate="let data of 'headerTemplateCol3'">
+          <div>공급자 등록번호<br>("-" 없이 입력)</div>
+        </div>
+        <dxi-column dataField="col4" [caption]="'공급자 종사업장번호'"></dxi-column>
+        <dxi-column dataField="col5" [caption]="'공급자 상호'"></dxi-column>
+        <dxi-column dataField="col6" [caption]="'공급자 성명'"></dxi-column>
+        <dxi-column dataField="col7" [caption]="'공급자 사업장주소'"></dxi-column>
+        <dxi-column dataField="col8" [caption]="'공급자 업태'"></dxi-column>
+        <dxi-column dataField="col9" [caption]="'공급자 종목'"></dxi-column>
+        <dxi-column dataField="col10" [caption]="'공급자 이메일'"></dxi-column>
+        <dxi-column dataField="col11" [caption]="'공급받는자 등록번호 \n(&quot;-&quot; 없이 입력)'" headerCellTemplate="headerTemplateCol11"></dxi-column>
+        <div *dxTemplate="let data of 'headerTemplateCol11'">
+          <div>공급받는자 등록번호<br>("-" 없이 입력)</div>
+        </div>
+        <dxi-column dataField="col12" [caption]="'공급받는자 종사업장번호'"></dxi-column>
+        <dxi-column dataField="col13" [caption]="'공급받는자 상호'"></dxi-column>
+        <dxi-column dataField="col14" [caption]="'공급받는자 성명'"></dxi-column>
+        <dxi-column dataField="col15" [caption]="'공급받는자 사업장주소'"></dxi-column>
+        <dxi-column dataField="col16" [caption]="'공급받는자 업태'"></dxi-column>
+        <dxi-column dataField="col17" [caption]="'공급받는자 종목'"></dxi-column>
+        <dxi-column dataField="col18" [caption]="'공급받는자 이메일1'"></dxi-column>
+        <dxi-column dataField="col19" [caption]="'공급받는자 이메일2'"></dxi-column>
+        <dxi-column dataField="col20" [caption]="'공급가액'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col21" [caption]="'세액'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col22" [caption]="'비고'"></dxi-column>
+        <dxi-column dataField="col23" [caption]="'일자1'" headerCellTemplate="headerTemplateCol23"></dxi-column>
+        <div *dxTemplate="let data of 'headerTemplateCol23'">
+          <div>일자1<br>(2자리, 작성년월 제외)</div>
+        </div>
+        <dxi-column dataField="col24" [caption]="'품목1'"></dxi-column>
+        <dxi-column dataField="col25" [caption]="'규격1'"></dxi-column>
+        <dxi-column dataField="col26" [caption]="'수량1'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col27" [caption]="'단가1'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col28" [caption]="'공급가액1'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col29" [caption]="'세액1'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col30" [caption]="'품목비고1'"></dxi-column>
+        <dxi-column dataField="col31" [caption]="'일자2'" headerCellTemplate="headerTemplateCol31"></dxi-column>
+        <div *dxTemplate="let data of 'headerTemplateCol31'">
+          <div>일자2<br>(2자리, 작성년월 제외)</div>
+        </div>
+        <dxi-column dataField="col32" [caption]="'품목2'"></dxi-column>
+        <dxi-column dataField="col33" [caption]="'규격2'"></dxi-column>
+        <dxi-column dataField="col34" [caption]="'수량2'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col35" [caption]="'단가2'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col36" [caption]="'공급가액2'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col37" [caption]="'세액2'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col38" [caption]="'품목비고2'"></dxi-column>
+        <dxi-column dataField="col39" [caption]="'일자3'" headerCellTemplate="headerTemplateCol39"></dxi-column>
+        <div *dxTemplate="let data of 'headerTemplateCol39'">
+          <div>일자3<br>(2자리, 작성년월 제외)</div>
+        </div>
+        <dxi-column dataField="col40" [caption]="'품목3'"></dxi-column>
+        <dxi-column dataField="col41" [caption]="'규격3'"></dxi-column>
+        <dxi-column dataField="col42" [caption]="'수량3'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col43" [caption]="'단가3'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col44" [caption]="'공급가액3'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col45" [caption]="'세액3'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col46" [caption]="'품목비고3'"></dxi-column>
+        <dxi-column dataField="col47" [caption]="'일자4'" headerCellTemplate="headerTemplateCol47"></dxi-column>
+        <div *dxTemplate="let data of 'headerTemplateCol47'">
+          <div>일자4<br>(2자리, 작성년월 제외)</div>
+        </div>
+        <dxi-column dataField="col48" [caption]="'품목4'"></dxi-column>
+        <dxi-column dataField="col49" [caption]="'규격4'"></dxi-column>
+        <dxi-column dataField="col50" [caption]="'수량4'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col51" [caption]="'단가4'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col52" [caption]="'공급가액4'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col53" [caption]="'세액4'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col54" [caption]="'품목비고4'"></dxi-column>
+        <dxi-column dataField="col55" [caption]="'현금'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col56" [caption]="'수표'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col57" [caption]="'어음'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col58" [caption]="'외상미수금'" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="col59" [caption]="'영수(01),\n청구(02)'" headerCellTemplate="headerTemplateCol59"></dxi-column>
+        <div *dxTemplate="let data of 'headerTemplateCol59'">
+          <div>영수(01),<br>청구(02)</div>
+        </div>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+
+<!-- 전자세금계산서 결과 업로드 팝업 -->
+<dx-popup [title]="utilService.convert1('sales.invoice_upload','전자세금계산서 결과 업로드', 'Upload Tax Invoice Results')"
+          [closeOnOutsideClick]="false"
+          [dragEnabled]="true"
+          [width]="960"
+          [height]="744"
+          [(visible)]="invoiceUpPopupVisible"
+          (onHidden)="onInvoiceUpPopupClose($event)">
+
+  <!-- 전자세금계산서 업로드 버튼 -->
+  <dxi-toolbar-item widget="dxButton"
+                    location="after"
+                    toolbar="bottom"
+                    [options]="{ text: utilService.convert('com_btn_upload')
+                                   , type: 'success'
+                                   , onClick: onInvoiceUpSaveClick}">
+  </dxi-toolbar-item>
+
+  <!-- 전자세금계산서 닫기 버튼 -->
+  <dxi-toolbar-item widget="dxButton"
+                    location="after"
+                    toolbar="bottom"
+                    [options]="{ text: utilService.convert('com_btn_close')
+                                   , onClick: onInvoiceUpCancelClick}">
+  </dxi-toolbar-item>
+
+  <!-- 전자세금계산서 폼 시작 -->
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #invoiceResultForm
+             [(formData)]="invoiceUpFormData"
+             [showColonAfterLabel]="false"
+             [colCountByScreen]="{ lg:4, md: 4, sm:2, xs:2 }">
+      <dxi-item [caption]="utilService.convert1('sales.invoice_upload','전자세금계산서 결과 업로드', 'Upload Tax Invoice Results')" itemType="group" [colCount]="4"
+                [colSpan]="4">
+        <div class="flex-container">
+          <dx-file-uploader #fileUploader
+                            [selectButtonText]="utilService.convert1('fileUploadButtonText', '파일 첨부')"
+                            labelText=""
+                            accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                            uploadMode="useForm"
+                            [allowCanceling]="true">
+          </dx-file-uploader>
+          <dx-button type="default"
+                     [useSubmitBehavior]="true"
+                     [text]="utilService.convert1('SubmitFile', '파일 적용')"
+                     (onClick)="onInvoiceUpFileUploader(fileUploader)">
+          </dx-button>
+          <dx-button type="default"
+                     [text]="utilService.convert('com_btn_reset')"
+                     (onClick)="onInvoiceUpResetFileUploader(fileUploader)">
+          </dx-button>
+        </div>
+      </dxi-item>
+
+      <!-- 전자세금계산서 리스트 그룹 -->
+      <dxi-item [caption]="utilService.convert1('sales.sales_invoice_list', '전자세금계산서 리스트', 'Tax Invoice List')" itemType="group" [colCount]="4"
+                [colSpan]="4">
+
+        <!-- 전자세금계산서 그리드 시작 -->
+        <dx-data-grid #invoiceResultGrid
+                      [dataSource]="invoiceUpDataSource"
+                      (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                      [showRowLines]="true"
+                      [rowAlternationEnabled]="true"
+                      [focusedRowEnabled]="true"
+                      [showBorders]="true"
+                      [allowColumnResizing]="true"
+                      [allowColumnReordering]="true"
+                      [columnAutoWidth]="true"
+                      [height]="430"
+                      columnResizingMode=nextColumn>
+          <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+          <dxo-pager [visible]="true"
+                     [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                     [displayMode]="'full'"
+                     [showPageSizeSelector]="true"
+                     [showInfo]="true"
+                     [showNavigationButtons]="true">
+          </dxo-pager>
+          <dxo-editing mode="batch"></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true"></dxo-export>
+          <dxo-search-panel [visible]="true"
+                            [width]="300"
+                            [placeholder]="''">
+          </dxo-search-panel>
+          <dxo-state-storing [enabled]="true"
+                             type="custom"
+                             [customLoad]="loadStateBeginInv"
+                             [customSave]="saveStateBeginInv">
+          </dxo-state-storing>
+          <dxi-column dataField="tenant"
+                      caption="tenant"
+                      [visible]="false"
+                      [allowSearch]="false"
+                      [showInColumnChooser]="false"
+                      [allowEditing]="false">
+          </dxi-column>
+          <dxi-column name="No" [caption]="utilService.convert('com_text_no')" width="40" cellTemplate="NoTemplate"
+                      alignment="center"></dxi-column>
+          <div *dxTemplate="let data of 'NoTemplate'">
+            {{ data.rowIndex + 1}}
+          </div>
+          <dxi-column dataField="wrk_dt" dataType="date" format="yyyy-MM-dd"
+                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd' }"
+                      [caption]="utilService.convert1('sales.wrk_dt', '작성일자', 'Date of issue')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="invoice_appr_no" [caption]="utilService.convert1('sales.invoice_appr_no', '승인번호', 'Tax Invoice Approval Number')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="supplier_biz_no" [caption]="utilService.convert1('sales.supplier_biz_no', '공급받는자 사업자등록 번호', 'Supplier Business Registration Number')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="supplier_biz_nm" [caption]="utilService.convert1('sales.supplier_biz_nm', '공급받는자 상호', 'Supplier Name')"
+                      alignment="center"></dxi-column>
+          <dxi-column dataField="invoice_tot_amt" [caption]="utilService.convert1('sales.invoice_tot_amt', '합계금액', 'Total amount of Tax Invoice')"
+                      format="#,##0.####"></dxi-column>
+        </dx-data-grid>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>
+
+

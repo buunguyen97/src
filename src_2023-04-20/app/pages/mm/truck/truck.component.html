@@ -1,0 +1,185 @@
+<!-- 공통 > 차량관리 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/mm/truck') }}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+      <!-- 저장  -->
+  <dx-button
+    icon="check"
+    type="default"
+    [text]="utilService.convert('com_btn_save')"
+    (onClick)="onSave()"
+  >
+  </dx-button>
+  </span>
+</div>
+
+<div class="contents-body">
+  <div class="search-foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                      lg:3, md: 3, sm:1, xs:1
+                 }"
+      >
+        <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }">
+          </dxi-item>
+          <dxi-item dataField="vehicleKey"
+                    [label]="{text: utilService.convert1('mm_vehicle_vehicleKey', '차량ID')}"></dxi-item>
+          <dxi-item dataField="country" [label]="{text: utilService.convert1('mm_vehicle_country', '국가')}"
+                    editorType="dxSelectBox" [editorOptions]="{
+                        items: dsCountry,
+                        displayExpr: 'display',
+                        valueExpr: 'code',
+                        searchMode: 'contains',
+                        searchEnabled: true,
+                        openOnFieldClick: false,
+                        noDataText: 'No Data',
+                        placeholder: ''
+                        }"></dxi-item>
+          <dxi-item dataField="ownerName"
+                    [label]="{text: utilService.convert1('mm_vehicle_ownerName','차주')}"></dxi-item>
+          <dxi-item dataField="actFlg" [label]="{text: utilService.convert1('mm_vehicle_actFlg', '사용여부')}"
+                    editorType="dxSelectBox" [editorOptions]="{
+                        items: dsYN,
+                        displayExpr: 'codeName',
+                        valueExpr: 'code',
+                        searchMode:'contains',
+                        searchEnabled: true,
+                        openOnFieldClick: false,
+                        minSearchLength: 0,
+                        placeholder: utilService.convert1('com_code_actFlg', '사용여부'),
+                        noDataText: 'No data found',
+                        showClearButton: true
+                  }">
+            <dxi-validation-rule type="required"
+                                 [message]="utilService.convert('com_valid_required', utilService.convert('mm_vehicle_actFlg'))"></dxi-validation-rule>
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   class="search-btn"
+                   type="default"
+                   [focusStateEnabled]="false"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300"
+  >
+
+    <dxi-item [title]="utilService.convert1('mm_vehicle_vehicleList','차량리스트')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="dataSource"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparingWithComBtn($event, this, this.addClick, this.deleteClick)"
+        [(selectedRowKeys)]="selectedRows"
+        [allowColumnResizing]="true"
+        [focusedRowEnabled]="true"
+        [allowColumnReordering]="true"
+        [showRowLines]="true"
+        [columnAutoWidth]="true"
+        (onFocusedCellChanged)="onFocusedCellChanging($event)"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"
+                     [allowUpdating]="true"
+                     [(changes)]="changes"
+                     [selectTextOnEditStart]="true"
+        ></dxo-editing>
+        <dxo-selection mode="single" selectAllMode="allPages"></dxo-selection>
+        <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="utilService.convert('com_txt_searchPanel')"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState"
+                           [customSave]="saveState"></dxo-state-storing>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"></dxi-column>
+        <dxi-column name="No" caption="No" cellTemplate="NoTemplate" alignment="center" width="50"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="vehicleKey" cssClass="grid-cell-required" [allowEditing]="false" width="200"
+                    [caption]="utilService.convert1('mm_vehicle_vehicleKey', '차량ID')" [allowEditing]="false">
+          <!--          <dxi-validation-rule type="required"></dxi-validation-rule>-->
+        </dxi-column>
+        <dxi-column dataField="country" cssClass="grid-cell-required"
+                    [caption]="utilService.convert1('mm_vehicle_country', '국가')" width="150">
+          <dxo-lookup [dataSource]=dsCountry displayExpr="codeName" valueExpr="code"></dxo-lookup>
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-column>
+        <dxi-column dataField="vehicleType" cssClass="grid-cell-required"
+                    [caption]="utilService.convert1('mm_vehicle_vehicleType', '차량유형')" width="150">
+          <dxo-lookup [dataSource]=dsVehicleType displayExpr="display" valueExpr="code"></dxo-lookup>
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-column>
+        <dxi-column dataField="ownerName" cssClass="grid-cell-required"
+                    [caption]="utilService.convert1('mm_vehicle_ownerName', '차주')" width="200">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-column>
+        <dxi-column dataField="cbm" cssClass="grid-cell-required"
+                    [caption]="utilService.convert1('mm_vehicle_cbm', 'CBM(mm³)')" format="#,##0.##" width="150">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-column>
+        <dxi-column dataField="cbmAble" cssClass="grid-cell-required"
+                    [caption]="utilService.convert1('mm_vehicle_cbmAble', '가용CBM(mm³)')" format="#,##0.##" width="150">
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-column>
+        <dxi-column dataField="actFlg" width="100" [caption]="utilService.convert1('inv_invadjust_actFlg', '사용여부')"
+                    alignment="center">
+          <dxo-lookup [dataSource]="dsActFlg" displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="remarks" [caption]="utilService.convert1('com_text_remarks', '비고')"
+        ></dxi-column>
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false"
+                    alignment="left" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" alignment="left" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn
+                    alignment="center"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

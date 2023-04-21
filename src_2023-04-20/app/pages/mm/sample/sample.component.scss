@@ -1,0 +1,16 @@
+.flex-container {
+  display: flex !important;
+}
+
+.flex-container dx-data-grid {
+  margin-right: 20px;
+}
+
+.flex-container dx-data-grid:last-child {
+  margin-right: 0px;
+}
+
+.flex-container dx-tree-view {
+  width: 500px;
+  margin-right: 20px;
+}

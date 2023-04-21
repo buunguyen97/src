@@ -1,0 +1,248 @@
+<!-- 입고 > 입고예정일변경 -->
+
+
+<div class="contents-header">
+  <h2 class="content-block page-title">입고예정일변경</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+      <dx-button icon="check"
+                 id="modifyLocation"
+                 type="default"
+                 text="입고예정일변경"
+                 (onClick)="modifySchDate()"
+      ></dx-button>
+  </span>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="4"
+               [colCountByScreen]="{
+                      lg:8, md: 8, sm:4, xs:2
+                   }"
+      >
+        <dxi-item itemType="group" [colCount]="8" [colSpan]="8">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item dataField="sts" [label]="{text: '입고상태'}" editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{
+                                      items: dsRcvStatus,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: 'No found data.'
+                                      }"></dxi-item>
+
+          <dxi-item itemType="group" [label]="{text: '입고예정일자'}" cssClass="fromtocalendar" [colCount]="2"
+                    [colSpan]="2">
+            <dxi-item dataField="fromRcvSchDate"
+                      editorType="dxDateBox"
+                      [label]="{visible: false}"
+                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">
+            </dxi-item>
+            <dxi-item dataField="toRcvSchDate"
+                      editorType="dxDateBox"
+                      [label]="{text: '~'}"
+                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">
+            </dxi-item>
+          </dxi-item>
+
+          <dxi-item itemType="group" [label]="{text: '입고실적일자'}" cssClass="fromtocalendar" [colCount]="2"
+                    [colSpan]="2">
+            <dxi-item dataField="fromReceiveDate"
+                      editorType="dxDateBox"
+                      [label]="{visible: false}"
+                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">
+            </dxi-item>
+            <dxi-item dataField="toReceiveDate"
+                      editorType="dxDateBox"
+                      [label]="{text: '~'}"
+                      [editorOptions]="{ useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">
+            </dxi-item>
+          </dxi-item>
+
+          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="rcvTypecd" [label]="{text: '입고타입'}" editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{
+                                      items: dsRcvType,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: 'No found data.'
+                                      }"></dxi-item>
+          <dxi-item dataField="supplierId" [label]="{text: '거래처코드'}" editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{
+                                    items: dsCompany,
+                                    displayExpr: 'display',
+                                    valueExpr: 'uid',
+                                    searchMode:'contains',
+                                    searchEnabled: true,
+                                    showClearButton: true,
+                                    openOnFieldClick: false,
+                                    minSearchLength: 0,
+                                    placeholder: '',
+                                    noDataText: 'No found data.'
+                                    }">
+          </dxi-item>
+          <dxi-item dataField="itemId" [label]="{text: '품목코드'}" editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{
+                                    items: dsItemId,
+                                    displayExpr: 'display',
+                                    valueExpr: 'uid',
+                                    searchMode:'contains',
+                                    searchEnabled: true,
+                                    showClearButton: true,
+                                    openOnFieldClick: false,
+                                    minSearchLength: 0,
+                                    placeholder: '',
+                                    noDataText: 'No found data.'
+                                    }">
+          </dxi-item>
+          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+
+          <!-- ------------------------------------------------------- -->
+          <dxi-item dataField="rcvKey" [label]="{text: '입고번호'}" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="acceptKey" [label]="{text: '입고접수번호'}" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="otherrefno1" [label]="{text: 'ERP전표번호'}" [colSpan]="2"></dxi-item>
+          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="otherrefno2" [label]="{text: 'PO NO'}" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="otherrefno3" [label]="{text: 'BL NO'}" [colSpan]="2"></dxi-item>
+          <dxi-item dataField="supplierno" [label]="{text: 'INVOICE'}" [colSpan]="2"></dxi-item>
+          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   text="Reset"
+                   class="reset-btn"
+                   (onClick)="onReset()"
+        ></dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   text="Search"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button icon="chevronup"
+                 type="default"
+                 text="펼치기"
+      ></dx-button>
+    </div>
+  </div>
+  <!--Grid-->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item title="아코디언 타이틀_서브타이틀1">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="dataSource"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [allowColumnResizing]="true"
+        [columnAutoWidth]="true"
+        [focusedRowEnabled]="true"
+        (onFocusedCellChanged)="onFocusedCellChanging($event)"
+        [showRowLines]="true"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"
+                     [allowUpdating]="true"
+                     [(changes)]="changes"
+                     [selectTextOnEditStart]="true"
+        ></dxo-editing>
+        <dxo-selection mode="multiple" selectAllMode="allPages">
+        </dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          placeholder="Search..."></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState"
+                           [customSave]="saveState"></dxo-state-storing>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column name="No" caption="No" cellTemplate="NoTemplate" [allowEditing]="false"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="acceptKey" caption="입고접수키" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="rcvKey" caption="입고키" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="itemAdminId" caption="품목관리사" [allowEditing]="false">
+        </dxi-column>
+        <dxi-column dataField="actFlg" caption="사용여부" alignment="center" [allowEditing]="false">
+          <dxo-lookup [dataSource]=dsActFlg displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="sts" caption="입고상태" alignment="center" [allowEditing]="false">
+          <dxo-lookup [dataSource]=dsRcvStatus displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemId" caption="품목코드" [allowEditing]="false" [setCellValue]="setItemValue">
+          <dxo-lookup [dataSource]=dsItemId displayExpr="display" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemName" caption="품목명" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="unit" [caption]="utilService.convert1('rcvDetail.unit3Stylecd', '단위')"
+                    [allowEditing]="false" alignment="center">
+          <dxo-lookup [dataSource]="dsItemId" displayExpr="unit3Stylecd" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="itemTypecd" caption="품목상태" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="expectQty1" caption="예정수량" format="#,##0.####" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="adjustQty1" caption="조정수량" format="#,##0.####" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="inspectedQty1" caption="지시수량" format="#,##0.####"
+                    [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="toLocId" caption="적재지시LOC코드" [allowEditing]="true">
+          <dxo-lookup [dataSource]=dsLocation displayExpr="display" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="remarks" caption="비고" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="slottedUserId" caption="적치담당자" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="createdDatetime" caption="등록일시" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="createdBy" caption="등록자" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="modifiedDatetime" caption="변경일시" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="modifiedBy" caption="변경자" [allowEditing]="false"></dxi-column>
+        <dxo-summary>
+          <dxi-total-item column="expectQty1" summaryType="sum" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item column="adjustQty1" summaryType="sum" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item column="inspectedQty1" summaryType="sum" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+        </dxo-summary>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

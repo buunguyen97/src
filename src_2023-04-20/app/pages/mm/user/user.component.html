@@ -1,0 +1,473 @@
+<!-- 공통 > 사용자 -->
+
+<!------------------------------------------------------------------------------------------------>
+<!---------------------------------------  헤더 영역 START   -------------------------------------->
+<!------------------------------------------------------------------------------------------------>
+<div class="contents-header">
+  <!-- Header Title START -->
+  <h2 class="content-block page-title">{{utilService.convert('/mm/user')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <!-- Header Title END -->
+  <!-- 버튼 그룹 START (조회 버튼 제외 - 조회버튼은 조회영역에 삽입) -->
+  <span class="btngroup page-button-group">
+    <!-- 신규버튼  -->
+    <dx-button #newBtn id="Open" icon="add" type="default" [text]="utilService.convert('com_btn_new')"
+               (onClick)="onPopupOpen($event)"></dx-button>
+    <!-- ...추가 버튼들 -->
+  </span>
+  <!-- 버튼 그룹 END -->
+  <hr/>
+</div>
+<!------------------------------------------------------------------------------------------------>
+<!---------------------------------------  헤더 영역 END   ---------------------------------------->
+<!------------------------------------------------------------------------------------------------>
+
+
+<!------------------------------------------------------------------------------------------------>
+<!---------------------------------------  바디 영역 START   -------------------------------------->
+<!------------------------------------------------------------------------------------------------>
+<div class="contents-body">
+  <!----------------------------------------------------------------------------------------------------->
+  <!---------------------------------------  조회 조건 영역 START   --------------------------------------->
+  <!----------------------------------------------------------------------------------------------------->
+  <div class="search_foldable">
+    <div class="search-box">
+      <!-- Search Form START-->
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [showColonAfterLabel]="false"
+               [minColWidth]="300"
+               [colCount]="3"
+               [colCountByScreen]="{
+                  lg:3, md: 3, sm:1, xs:1
+                }"
+      >
+        >
+        <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item dataField="usr" [label]="{text: utilService.convert('mm_user_id')}"></dxi-item>
+          <dxi-item dataField="name" [label]="{text: utilService.convert('mm_user_name')}"></dxi-item>
+          <dxi-item dataField="actFlg" [label]="{text: utilService.convert('com_code_actFlg')}"
+                    editorType="dxSelectBox"
+                    [editorOptions]="{  items: dsActFlg,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText'),
+                                      showClearButton: true
+                                   }"
+          >
+          </dxi-item>
+          <dxi-item dataField="companyId"
+                    editorType="dxSelectBox" [colSpan]="1"
+                    [label]="{text: utilService.convert('mm_user_companyId')}"
+                    [editorOptions]="{  items: dsOwnerId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0
+                                   }"></dxi-item>
+        </dxi-item>
+      </dx-form>
+      <!-- 조회 버튼 START (Search Form 가장 마지막 부분에 조회 버튼 추가) -->
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+      <!-- 조회 버튼 END -->
+    </div>
+    <!-- Search Form END-->
+    <!-- 펼치기 버튼 START (기본 조회영역보다 벗어나는 컴포넌트들을 |SHOW|HIDE| -> 조회영역 높이 조정을 위한 버튼) -->
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <!-- 펼치기 버튼 END -->
+  <!--------------------------------------------------------------------------------------------------->
+  <!---------------------------------------  조회 조건 영역 END   --------------------------------------->
+  <!--------------------------------------------------------------------------------------------------->
+
+
+  <!-------------------------------------------------------------------------------------------------->
+  <!---------------------------------------  그리드 영역 START   --------------------------------------->
+  <!-------------------------------------------------------------------------------------------------->
+  <!-- GRID 아코디언 START -->
+  <dx-accordion [collapsible]="true"
+                [multiple]="false"
+                [animationDuration]="300"
+  >
+    <!-- mainGrid START -->
+    <dxi-item [title]="utilService.convert('mm_user_mainGridTitle')">
+      <dx-data-grid #mainGrid
+                    [dataSource]="mainGridDataSource"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    (onRowDblClick)="onPopupOpen($event)"
+                    [allowColumnResizing]="true"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [allowColumnReordering]="true"
+                    [showRowLines]="true"
+                    (onExporting)="gridUtil.onPageExportXlsx($event)"
+                    columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel [visible]="true"
+                          [width]="240"
+                          [placeholder]=""
+        ></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <!-- 페이저 세팅 displayMode = full -->
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState"
+                           [customSave]="saveState"></dxo-state-storing>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="usr" [caption]="utilService.convert('mm_user_id')"></dxi-column>
+        <dxi-column dataField="name" [caption]="utilService.convert('mm_user_name')"></dxi-column>
+        <dxi-column dataField="shortName" [caption]="utilService.convert('mm_user_shortName')"></dxi-column>
+        <dxi-column dataField="companyId" [caption]="utilService.convert('mm_user_companyId')">
+          <dxo-lookup [dataSource]=dsCompany displayExpr="display" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="userGroup" [caption]="utilService.convert('mm_user_userGroup')"
+                    alignment="center">
+          <dxo-lookup [dataSource]=dsUserGroup displayExpr="display" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="email" [caption]="utilService.convert('mm_user_email')"></dxi-column>
+        <dxi-column dataField="tel" [caption]="utilService.convert('mm_user_tel')"></dxi-column>
+        <!--        <dxi-column dataField="dept" [caption]="utilService.convert('mm_user_dept')"></dxi-column>-->
+
+        <dxi-column
+          dataField="dept"
+          [caption]="utilService.convert('mm_user_dept')"
+          [allowSorting]="false"
+          editCellTemplate="tagBoxEditor"
+          [cellTemplate]="cellTemplate"
+          [calculateFilterExpression]="calculateFilterExpression"
+        >
+          <dxo-lookup [dataSource]="dsDept" valueExpr="dept_id" displayExpr="dept_nm">
+          </dxo-lookup>
+          <dxi-validation-rule type="required"></dxi-validation-rule>
+        </dxi-column>
+        <div *dxTemplate="let cellInfo of 'tagBoxEditor'">
+          <dx-tag-box
+            [dataSource]="dsDept"
+            [value]="cellInfo.value"
+            valueExpr="dept_id"
+            displayExpr="dept_nm"
+            [showSelectionControls]="true"
+            [maxDisplayedTags]="10"
+            [showMultiTagOnly]="false"
+            applyValueMode="useButtons"
+            [searchEnabled]="true"
+            (onValueChanged)="cellInfo.setValue($event.value)"
+            (onSelectionChanged)="cellInfo.component.updateDimensions()"
+          >
+          </dx-tag-box>
+        </div>
+
+        <!--        <dxi-column dataField="fax" [caption]="utilService.convert('mm_user_fax')"></dxi-column>-->
+        <dxi-column dataField="remarks" [caption]="utilService.convert('com_text_remarks')"></dxi-column>
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn alignment="center"></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn>
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]=this.utilService.isShowVisibleColumn alignment="center"></dxi-column>
+
+      </dx-data-grid>
+    </dxi-item>
+    <!-- mainGrid END -->
+    <!-- ...추가 그리드들 -->
+  </dx-accordion>
+</div>
+<!------------------------------------------------------------------------------------------------>
+<!---------------------------------------  그리드 영역 END   --------------------------------------->
+<!------------------------------------------------------------------------------------------------>
+
+<!------------------------------------------------------------------------------------------------>
+<!---------------------------------------  바디 영역 END   ---------------------------------------->
+<!------------------------------------------------------------------------------------------------>
+
+
+<!------------------------------------------------------------------------------------------------>
+<!---------------------------------------  팝업 영역 START   --------------------------------------->
+<!------------------------------------------------------------------------------------------------>
+<dx-popup #popup
+          [(title)]="popupMode"
+          [dragEnabled]="true"
+          [resizeEnabled]="true"
+          (onShown)="onPopupAfterOpen()"
+          (onHidden)="onPopupAfterClose()"
+>
+  <!--  <dxi-toolbar-item-->
+  <!--    #resetPwdBtn-->
+  <!--    widget="dxButton"-->
+  <!--    location="after"-->
+  <!--    toolbar="top"-->
+  <!--    [options]="{-->
+  <!--      text: utilService.convert1('비밀번호 초기화', '비밀번호 초기화'),-->
+  <!--      type: 'normal',-->
+  <!--      onClick: resetPassword-->
+  <!--    }"></dxi-toolbar-item>-->
+
+  <dxi-toolbar-item toolbar="bottom" location="before">
+    <dx-button #deleteBtn
+               type="danger"
+               [text]="utilService.convert('com_btn_del')"
+               (onClick)="onPopupDelete()"
+    ></dx-button>
+  </dxi-toolbar-item>
+  <dxi-toolbar-item toolbar="bottom" location="after">
+    <dx-button type="success"
+               [text]="utilService.convert('com_btn_save')"
+               (onClick)="onPopupSave()"
+    ></dx-button>
+    <dx-button type="normal"
+               [text]="utilService.convert('com_btn_close')"
+               (onClick)="onPopupClose()"
+    ></dx-button>
+  </dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupFormData"
+             labelLocation="left"
+             [showColonAfterLabel]="true"
+             [colCountByScreen]="{lg:3, md: 3, sm:1, xs:1}"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group" caption="Master" [colCount]="3" [colSpan]="3">
+        <dxi-item dataField="usr" [label]="{text: utilService.convert('mm_user_id')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_user_id'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="password" [label]="{text: utilService.convert('mm_user_pwd')}">
+          <span class="btngroup page-button-group">
+          <dx-button #pwdBtn
+                     type="default"
+                     [text]="utilService.convert('mm_user_btn_chnPwd')"
+                     (onClick)="pwdPopupOpenClick()"
+          ></dx-button>
+          <dx-button #resetPwdBtn
+                     type="default"
+                     [visible]="false"
+                     [text]="utilService.convert1('비밀번호 초기화', '비밀번호 초기화')"
+                     (onClick)="resetPassword()"
+          ></dx-button>
+          </span>
+        </dxi-item>
+        <dxi-item dataField="actFlg" [label]="{text:utilService.convert('com_code_actFlg')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsActFlg,
+                                      displayExpr: 'codeName',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"
+        >
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('com_code_actFlg'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="name" [label]="{text: utilService.convert('mm_user_name')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_user_name'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="shortName" [label]="{text: utilService.convert('mm_user_shortName')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_user_shortName'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item itemType="empty"></dxi-item>
+
+        <dxi-item dataField="email" [label]="{text: utilService.convert('mm_user_email')}">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_user_email'))"></dxi-validation-rule>
+          <dxi-validation-rule type="email"
+                               [message]="utilService.convert('mm_user_valid_emil')"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="tel" [label]="{text: utilService.convert('mm_user_tel')}"
+                  [editorOptions]="{mask: '+ccc) ccccccccccccccccc',  maskChar: ' ', maskInvalidMessage: 'The input value does not match the mask', onOptionChanged: focusIn}">
+        </dxi-item>
+        <dxi-item itemType="empty"></dxi-item>
+
+        <dxi-item dataField="userGroup" [label]="{text:utilService.convert('mm_user_userGroup')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsUserGroup,
+                                      displayExpr: 'display',
+                                      valueExpr: 'code',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText')
+                                   }"
+        >
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_user_userGroup'))"></dxi-validation-rule>
+        </dxi-item>
+
+        <dxi-item dataField="companyId"
+                  editorType="dxSelectBox"
+                  [label]="{text: utilService.convert('mm_user_companyId')}"
+                  [editorOptions]="{  items: dsOwnerId,
+                                      displayExpr: 'display',
+                                      valueExpr: 'uid',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      showClearButton: true,
+                                      minSearchLength: 0,
+                                      noDataText: utilService.convert('com_txt_noDataText'),
+                                      onValueChanged: onValueChangedCompanyId
+                                   }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_user_companyId'))"></dxi-validation-rule>
+        </dxi-item>
+        <!--        <dxi-item dataField="dept"-->
+        <!--                  editorType="dxSelectBox"-->
+        <!--                  [label]="{text: utilService.convert1('mm_user_dept','부서')}"-->
+        <!--                  [editorOptions]="{  items: dsFilteredDept,-->
+        <!--                                      displayExpr: 'display',-->
+        <!--                                      valueExpr: 'display',-->
+        <!--                                      searchMode:'contains',-->
+        <!--                                      searchEnabled: true,-->
+        <!--                                      openOnFieldClick: false,-->
+        <!--                                      showClearButton: true,-->
+        <!--                                      minSearchLength: 0,-->
+        <!--                                      noDataText: utilService.convert('com_txt_noDataText')-->
+        <!--                                   }">-->
+        <!--          <dxi-validation-rule type="required"-->
+        <!--                               [message]="utilService.convert('com_valid_required', utilService.convert('mm_user_companyId'))"></dxi-validation-rule>-->
+        <!--        </dxi-item>-->
+
+
+        <dxi-item dataField="dept" [label]="{text: utilService.convert1('mm_user_dept', '부서')}">
+          <dx-drop-down-box
+            [(value)]="treeBoxValue"
+            valueExpr="dept_id"
+            displayExpr="display"
+            [placeholder]="''"
+            [showClearButton]="true"
+            [dataSource]="dsFilteredDept"
+            (onValueChanged)="onDropDownBoxValueChanged($event)"
+          >
+            <div *dxTemplate="let data of 'content'">
+              <dx-tree-view
+                [dataSource]="dsFilteredDept"
+                dataStructure="plain"
+                keyExpr="dept_id"
+                selectionMode="multiple"
+                showCheckBoxesMode="normal"
+                [selectNodesRecursive]="false"
+                displayExpr="display"
+                [selectByClick]="true"
+                (onContentReady)="onTreeViewReady($event)"
+                (onItemSelectionChanged)="onTreeViewSelectionChanged($event)"
+              >
+              </dx-tree-view>
+            </div>
+          </dx-drop-down-box>
+        </dxi-item>
+
+
+        <!--        <dxi-item dataField="fax" [label]="{text: utilService.convert('mm_user_fax')}"-->
+        <!--                  [editorOptions]="{mask: '+ccc) ccccccccccccccccc',  maskChar: ' ', maskInvalidMessage: 'The input value does not match the mask', onOptionChanged: focusIn}">-->
+        <!--        </dxi-item>-->
+        <!--        <dxi-item itemType="empty" [colSpan]="2"></dxi-item>-->
+        <dxi-item dataField="remarks" [colSpan]="3" editorType="dxTextArea"
+                  [label]="{text: utilService.convert('com_text_remarks')}"
+                  [editorOptions]="{placeholder: utilService.convert('com_txt_noContent')}"></dxi-item>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>
+
+<dx-popup #pwdPopup
+          [closeOnOutsideClick]="false"
+          [dragEnabled]="true"
+          [visible]="false"
+          [title]="utilService.convert('mm_user_btn_chnPwd')"
+          (onHidden)="pwdPopupAfterClose()"
+          height="300px"
+          width="400px"
+>
+  <dxi-toolbar-item widget="dxButton"
+                    location="after"
+                    toolbar="bottom"
+                    [options]="{
+                      text: utilService.convert('com_btn_save'),
+                      type: 'success',
+                      onClick: pwdPopupSaveClick
+                    }"></dxi-toolbar-item>
+  <dxi-toolbar-item widget="dxButton"
+                    location="after"
+                    toolbar="bottom"
+                    [options]="{
+                      text: utilService.convert('com_btn_close'),
+                      stylingMode: 'outlined',
+                      type: 'normal',
+                      onClick: pwdPopupCancelClick
+                    }"></dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #pwdPopupForm
+             [(formData)]="pwdPopupData"
+             [showColonAfterLabel]="true"
+             labelLocation="left"
+    >
+      <dxi-item dataField="password" [editorOptions]="{mode: 'password'}"
+                [label]="{text: utilService.convert('mm_user_pop_currentPwd')}"></dxi-item>
+      <dxi-item dataField="changePassword" [editorOptions]="{mode: 'password'}"
+                [label]="{text: utilService.convert('mm_user_pop_newPwd')}"></dxi-item>
+      <dxi-item dataField="checkPassword" [editorOptions]="{mode: 'password'}"
+                [label]="{text: utilService.convert('mm_user_pop_confirmPwd')}">
+        <dxi-validation-rule type="compare"
+                             [comparisonTarget]="passwordComparison"
+                             [message]="utilService.convert('mm_user_confirmMsg')"
+        ></dxi-validation-rule>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>
+<!----------------------------------------------------------------------------------------------->
+<!---------------------------------------  팝업 영역 END   --------------------------------------->
+<!----------------------------------------------------------------------------------------------->

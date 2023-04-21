@@ -1,0 +1,205 @@
+<div class="contents-header">
+<!-- Header -->
+  <h2 class="content-block page-title">{{utilService.convert1('/sacs/sacs070', '창고권한등록')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+  </span>
+  <hr/>
+</div>
+
+<!-- Main Form -->
+<div class="contents-body">
+
+  <!-- 검색 영역 -->
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               [(formData)]="mainFormData"
+               class="search-form-box"
+               labelLocation="left"
+               [showColonAfterLabel]="false"
+               [minColWidth]="300"
+               [colCount]="6"
+               [colCountByScreen]="{lg:6, md: 6, sm:3, xs:3}"
+               (onEditorEnterKey)="onSearch()"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="ptrn_cd" [label]="{text: utilService.convert ('header.companyId')}" editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{ items: dsPtrn
+                                   , displayExpr: 'display'
+                                   , valueExpr: 'cd'
+                                   , searchMode:'contains'
+                                   , searchEnabled: true
+                                   , openOnFieldClick: false
+                                   , minSearchLength: 0
+                                   , placeholder: ''
+                                   , noDataText: utilService.convert('com_txt_noDataText')
+                                   , showClearButton: true
+                                   , onValueChanged: onvalueChangedPtrnCd
+                                  }">
+<!--            <dxi-validation-rule type="required" [message]="utilService.convert('com_valid_required', utilService.convert ('header.companyId'))"></dxi-validation-rule>-->
+          </dxi-item>
+<!--          <dxi-item itemType="empty" [colSpan]="6"></dxi-item>-->
+          <dxi-item dataField="sales_wh_cd" [label]="{text: utilService.convert('sales.sales_wh_nm')}" [colSpan]="2"></dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+<!--        <dx-button icon="check"-->
+<!--                   type="default"-->
+<!--                   [text]="utilService.convert('com_btn_reset')"-->
+<!--                   class="reset-btn"-->
+<!--                   (onClick)="onReset()"-->
+<!--        ></dx-button>-->
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid (SalesWareHouse) -->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert('sales.sales_wh_list')">
+      <dx-data-grid #mainGrid
+                    [dataSource] = "mainGridDataSource"
+                    [allowColumnResizing]="true"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [showRowLines]="true"
+                    columnResizingMode=nextColumn
+                    (onFocusedRowChanged)="onFocusedRowChanging($event)"
+                    (onFocusedCellChanged)="onFocusedCellChanging($event)"
+                    [height]="300"
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true"></dxo-export>
+        <dxo-search-panel [visible]="true" [width]="240" placeholder=""></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true"
+        ></dxo-pager>
+        <dxo-filter-row [visible]="true"></dxo-filter-row>
+        <dxo-state-storing [enabled]="false" type="custom" [customLoad]=""
+                           [customSave]=""></dxo-state-storing>
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="ptrn_cd"    [caption]="utilService.convert('header.companyId')" alignment="center"></dxi-column>
+        <dxi-column dataField="ptrn_nm"    [caption]="utilService.convert('sales.ptrn_nm')"></dxi-column>
+        <dxi-column dataField="sa_wh_cd" [caption]="utilService.convert('sales.sales_wh_cd')"></dxi-column>
+        <dxi-column dataField="sales_wh_nm" [caption]="utilService.convert('sales.sales_wh_nm')"></dxi-column>
+        <dxi-column dataField="std_yn" [caption]="utilService.convert('sales.std')" alignment="center"></dxi-column>
+        <dxi-column dataField="pwh_cd" [caption]="utilService.convert('sales.wh_cd')" [visible]="false"></dxi-column>
+        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]="false"></dxi-column>
+        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]="false"></dxi-column>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+
+  <!-- Sub Grid (부서권한부여) -->
+  <dx-accordion [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('sales.authoritylist', '권한여부 리스트')">
+    <span class="btngroup page-button-group">
+      <dx-button icon     ="save"
+                 id       ="Save"
+                 type     ="default"
+                 [text]   ="utilService.convert('com_btn_save')"
+                 (onClick)="onSave()"
+        ></dx-button>
+      </span>
+      <dx-data-grid #subGrid
+                    [dataSource] = "subGridDataSource"
+                    [(selectedRowKeys)]="selectedRows"
+                    [allowColumnResizing]="true"
+                    [allowColumnReordering]="true"
+                    (onToolbarPreparing)="gridUtil.onToolbarPreparingWithComBtn($event, this, onAddRow, onDeleteRow)"
+                    [keyExpr]="key2"
+                    [columnAutoWidth]="true"
+                    [focusedRowEnabled]="true"
+                    [rowAlternationEnabled]="true"
+                    [showRowLines]="true"
+                    columnResizingMode=nextColumn
+                    (onFocusedRowChanged)="onFocusedSubRowChanging($event)"
+                    (onFocusedCellChanged)="onFocusedSubCellChanging($event)"
+                    (onInitNewRow)="onInitNewRow($event)"
+      >
+        <dxo-editing mode="batch"
+       				 [allowUpdating]="true"
+                     [(changes)]="changes">
+        </dxo-editing>
+        <dxo-filter-row [visible]="true"></dxo-filter-row>
+        <dxo-selection mode="single"></dxo-selection>
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true"></dxo-export>
+        <dxo-search-panel [visible]="true" [width]="240" placeholder=""></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager [visible]="true"
+                   [allowedPageSizes]=gridUtil.getAllowedPageSize()
+                   [displayMode]="'full'"
+                   [showPageSizeSelector]="true"
+                   [showInfo]="true"
+                   [showNavigationButtons]="true"
+        ></dxo-pager>
+        <!-- <dxo-state-storing [enabled]="false" type="custom" [customLoad]=""
+                           [customSave]=""></dxo-state-storing> -->
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="dept_yn"     [caption]="utilService.convert('mm_user_dept')" editorType="dxSelectBox" alignment="center" [allowEditing]="true"
+        [setCellValue]="onValueChangedDeptYN">
+          <dxo-lookup [dataSource]="dsYn" displayExpr="nm" valueExpr="cd"></dxo-lookup>
+          <dxi-validation-rule type="required" [message]="utilService.convert('com_valid_required',utilService.convert('use_yn'))"></dxi-validation-rule>
+        </dxi-column>
+        <dxi-column dataField="target_id"    [caption]="utilService.convert1('sacs070_target_id', '부서/사용자')" editorType="dxSelectBox" [setCellValue]="onValueChangedTarget"
+                    [allowEditing]="true">
+          <dxo-lookup [dataSource]="getLookUpList" displayExpr="display" valueExpr="cd" ></dxo-lookup>
+          <dxi-validation-rule type="required" [message]="utilService.convert('com_valid_required',utilService.convert('mst_dept_deptId'))"></dxi-validation-rule>
+        </dxi-column>
+<!--        <dxi-column dataField="user_nm"  [caption]="utilService.convert('mm_user_name')" editorType="dxSelectBox">-->
+<!--          <dxo-lookup [dataSource]="dsUser" displayExpr="display" valueExpr="cd"></dxo-lookup>-->
+<!--          <dxi-validation-rule type="required" [message]="utilService.convert('com_valid_required',utilService.convert('mst_dept_deptId'))"></dxi-validation-rule>-->
+<!--        </dxi-column>-->
+        <dxi-column dataField="wh_aut"  [caption]="utilService.convert('/mm/pgmauthority')" editorType="dxSelectBox" alignment="center" [allowEditing]="true">
+          <dxo-lookup [dataSource]="dsYn" displayExpr="nm" valueExpr="cd"></dxo-lookup>
+          <dxi-validation-rule type="required" [message]="utilService.convert('com_valid_required',utilService.convert('/mm/pgmauthority'))"></dxi-validation-rule>
+        </dxi-column>
+
+<!--        <dxi-column dataField="dept_id" [visible]="false" [allowSearch]="false" [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>-->
+<!--        <dxi-column dataField="user_id" [visible]="false" [allowSearch]="false" [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>-->
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

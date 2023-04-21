@@ -1,0 +1,49 @@
+.qrpage-body {
+  height: 100%;
+  padding: 15px !important;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.qr_content {
+  padding-top: 30px;
+  text-align: center;
+}
+
+.qr_content p {
+  line-height: 2em;
+}
+
+.qr_confirm_btn {
+  margin-top: 30px;
+}
+
+@media (min-width: 640px) {
+  body {
+    min-width: 0px !important;
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  body {
+    min-width: 0px !important;
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    min-width: 0px !important;
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+    width: 100%;
+  }
+}

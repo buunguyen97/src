@@ -1,0 +1,748 @@
+<!-- 영업 > 회수요청등록 sarc010 -->
+
+<div class="contents-header">
+  <!-- Header Title START -->
+  <h2 class="content-block page-title">{{utilService.convert('/sarc/sarc010')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <!-- Header Title END -->
+  <!-- 버튼 그룹 START (조회 버튼 제외 - 조회버튼은 조회영역에 삽입) -->
+  <span class="btngroup page-button-group">
+    <!-- 신규버튼  -->
+     <dx-button icon="add" id="Open" type="default" [text]="utilService.convert('com_btn_new')"
+                (onClick)="onNew($event)"></dx-button>
+    <!-- ...추가 버튼들 -->
+  </span>
+  <!-- 버튼 그룹 END -->
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="3"
+               (onEditorEnterKey)="onSearch()"
+               [colCountByScreen]="{lg:6, md: 6, sm:3, xs:3}"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item dataField="rtn_ord_no" [label]="{text: utilService.convert('sales.rtn_ord_no')}"
+                    [colSpan]="2"></dxi-item>
+
+          <dxi-item itemType="group"
+                    [label]="{text: utilService.convert('sales.rtn_ord_dt')}" [colSpan]="2">
+            <dx-date-box #fromRtnOrdDate
+                         name="fromRtnOrdDate"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM-dd"
+                         dateSerializationFormat="yyyy-MM-dd"
+                         [calendarOptions]="{useMaskBehavior:'true'}"
+                         width="45%"
+                         [elementAttr]="{ style: 'float:left' }"
+            >
+            </dx-date-box>
+            <div style="float:left;margin:5px">~</div>
+            <dx-date-box #toRtnOrdDate
+                         name="toRtnOrdDate"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM-dd"
+                         dateSerializationFormat="yyyy-MM-dd"
+                         [calendarOptions]="{useMaskBehavior:'true'}"
+                         width="45%"
+                         [elementAttr]="{ style: 'float:left' }"
+            >
+            </dx-date-box>
+          </dxi-item>
+          <dxi-item itemType="empty" [colSpan]="2"></dxi-item>
+
+          <dxi-item dataField="exptCd" [label]="{text: utilService.convert1('sales.expt_cd', '수출사', 'Exporter')}"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsExptCd,
+                                            displayExpr: 'display',
+                                            valueExpr: 'cd',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                        }">
+          </dxi-item>
+          <dxi-item dataField="imptCd" [label]="{text: utilService.convert1('sales.impt_cd', '수입사', 'Importer')}"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsImptCd,
+                                            displayExpr: 'displayimptcd',
+                                            valueExpr: 'impt_cd',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                        }">
+          </dxi-item>
+          <dxi-item dataField="rtnPtrnCd"
+                    [label]="{text: utilService.convert1('sales.rtn_ptrn_cd', '회수파트너사', 'Return Partner')}"
+                    editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsPtrnCd,
+                                            displayExpr: 'display',
+                                            valueExpr: 'cd',
+                                            searchMode:'contains',
+                                            searchEnabled: true,
+                                            showClearButton: true,
+                                            openOnFieldClick: false,
+                                            minSearchLength: 0,
+                                            placeholder: '',
+                                            noDataText: utilService.convert('com_txt_noDataText')
+                        }">
+          </dxi-item>
+
+          <!--          <dxi-item itemType="group"-->
+          <!--                    [label]="{text: utilService.convert1('sales.rent_end_dt', '렌탈종료일자', 'Rental End Date')}"-->
+          <!--                    [colSpan]="2">-->
+          <!--            <dx-date-box #fromRentEndDate-->
+          <!--                         name="fromRentEndDate"-->
+          <!--                         type="date"-->
+          <!--                         pickerType="calendar"-->
+          <!--                         displayFormat="yyyy-MM-dd"-->
+          <!--                         dateSerializationFormat="yyyy-MM-dd"-->
+          <!--                         [calendarOptions]="{useMaskBehavior:'true'}"-->
+          <!--                         width="45%"-->
+          <!--                         [elementAttr]="{ style: 'float:left' }"-->
+          <!--            >-->
+          <!--            </dx-date-box>-->
+          <!--            <div style="float:left;margin:5px">~</div>-->
+          <!--            <dx-date-box #toRentEndDate-->
+          <!--                         name="toRentEndDate"-->
+          <!--                         type="date"-->
+          <!--                         pickerType="calendar"-->
+          <!--                         displayFormat="yyyy-MM-dd"-->
+          <!--                         dateSerializationFormat="yyyy-MM-dd"-->
+          <!--                         [calendarOptions]="{useMaskBehavior:'true'}"-->
+          <!--                         width="45%"-->
+          <!--                         [elementAttr]="{ style: 'float:left' }"-->
+          <!--            >-->
+          <!--            </dx-date-box>-->
+          <!--          </dxi-item>-->
+
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()"
+        ></dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <!--
+    <div class="foldable-btn">
+      <dx-button #foldableBtn icon="chevronup" type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm)"></dx-button>
+    </div>
+    -->
+  </div>
+
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300"
+  >
+    <dxi-item [title]="utilService.convert1('sales.rtn_ord_list', '회수요청 리스트', 'Return Order List')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="dsMainGrid"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [columnAutoWidth]="true"
+        [allowColumnResizing]="true"
+        [focusedRowEnabled]="true"
+        (onRowDblClick)="rowDblClick($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="rtn_ord_no"
+                    [caption]="utilService.convert1('sales.rtn_ord_no', '회수요청번호', 'Return Order No')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="rtn_ord_dt" dataType="date"
+                    editorType="dxDateBox" format="yyyy-MM-dd"
+                    [caption]="utilService.convert1('sales.rtn_ord_dt', '회수요청일자', 'Return Order Date')"
+                    alignment="center"
+                    [editorOptions]="{useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}"></dxi-column>
+        <dxi-column dataField="expt_cd"
+                    [caption]="utilService.convert1('sales.expt_cd', '수출사', 'Exporter')"></dxi-column>
+        <dxi-column dataField="expt_nm" [caption]="utilService.convert1('sales.expt_nm', '수출사명', 'Exporter Name')">
+          <!--<dxo-lookup [dataSource]="dsExptCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>-->
+        </dxi-column>
+        <!--        <dxi-column dataField="ptrn_cd"-->
+        <!--                    [caption]="utilService.convert1('sales.ptrn_cd', '파트너사', 'Partner')"></dxi-column>-->
+        <!--        <dxi-column dataField="ptrn_nm" [caption]="utilService.convert1('sales.ptrn_nm', '파트너사명', 'Partner Name')">-->
+        <!--<dxo-lookup [dataSource]="dsPtrnCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>-->
+        <!--        </dxi-column>-->
+        <!--            <dxi-column dataField="sku_out" [caption]="utilService.convert1('sales.out_sku', '출고SKU', 'Out SKU')" format="#,##0"></dxi-column>-->
+        <!--            <dxi-column dataField="sku_rtn" [caption]="utilService.convert1('sales.instruction_sku', '지시SKU', 'Instruction SKU')" format="#,##0"></dxi-column>-->
+        <!--            <dxi-column dataField="out_qty" [caption]="utilService.convert1('sales.out_qty', '출고수량', 'Out Qty')" format="#,##0.####"></dxi-column>-->
+        <!--            <dxi-column dataField="rtn_ord_qty" [caption]="utilService.convert1('sales.instruction_qty', '지시수량', 'Instruction Qty')" format="#,##0.####"></dxi-column>-->
+        <dxi-column dataField="impt_cd"
+                    [caption]="utilService.convert1('sales.impt_cd', '수입사', 'Importer')"></dxi-column>
+        <dxi-column dataField="impt_nm" [caption]="utilService.convert1('sales.impt_nm', '수입사명', 'Importer Name')">
+          <!--<dxo-lookup [dataSource]="dsImptCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="impt_sa_wh_cd"
+                    [caption]="utilService.convert1('sales.impt_wh_cd', '수입사창고', 'Warehouse')"></dxi-column>
+        <dxi-column dataField="impt_sa_wh_nm"
+                    [caption]="utilService.convert1('sales.impt_wh_nm', '수입사창고명', 'Warehouse Name')">
+          <!--<dxo-lookup [dataSource]="dsGridWhCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="rtn_ptrn_cd"
+                    [caption]="utilService.convert1('sales.rtn_ptrn_cd', '회수파트너사', 'Return Partner')"></dxi-column>
+        <dxi-column dataField="rtn_ptrn_nm"
+                    [caption]="utilService.convert1('sales.rtn_ptrn_nm', '회수파트너사명', 'Return Partner Name')">
+          <!--<dxo-lookup [dataSource]="dsPtrnCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>-->
+        </dxi-column>
+        <dxi-column dataField="sa_wh_cd"
+                    [caption]="utilService.convert1('sales.rtn_wh_cd', '회수창고', 'Return Warehouse')"></dxi-column>
+        <dxi-column dataField="sa_wh_nm"
+                    [caption]="utilService.convert1('sales.rtn_wh_nm', '회수창고명', 'Return Warehouse Name')"></dxi-column>
+        <dxi-column dataField="rtn_adr1"
+                    [caption]="utilService.convert1('sales.rtn_adr', '회수주소', 'Return Address')"></dxi-column>
+        <!--        <dxi-column dataField="rtn_adr"-->
+        <!--                    [caption]="utilService.convert1('sales.rtn_adr', '회수주소', 'Return Address')"></dxi-column>-->
+        <dxi-column dataField="wrk_stat" [caption]="utilService.convert1('sales.wrk_stat', '작업상태', 'Work Status')"
+                    [calculateCellValue]="wrkStatNm" alignment="center"></dxi-column>
+        <!--        <dxi-column dataField="sku" [caption]="utilService.convert1(  'sales.sku', 'SKU', 'SKU')"-->
+        <!--                    format="#,##0"></dxi-column>-->
+        <!--        <dxi-column dataField="item_cd" [caption]="utilService.convert1('sales.item', '품목', 'Item')"-->
+        <!--                    alignment="center"></dxi-column>-->
+        <!--        <dxi-column dataField="item_nm"-->
+        <!--                    [caption]="utilService.convert1('sales.item_nm', '품목명', 'Item Name')"></dxi-column>-->
+        <dxi-column dataField="rtn_ord_qty"
+                    [caption]="utilService.convert1('sales.instruction_qty', '지시수량', 'Instruction Qty')"
+                    format="#,##0.####"></dxi-column>
+
+        <!--        <dxi-column dataField="rtn_sche_dt" dataType="date"-->
+        <!--                    editorType="dxDateBox" format="yyyy-MM-dd"-->
+        <!--                    [caption]="utilService.convert1('sales.rtn_sche_dt', '회수예정일자', 'Expected Collection Date')"-->
+        <!--                    alignment="center"-->
+        <!--                    [editorOptions]="{useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}"></dxi-column>-->
+        <dxi-column dataField="remark" [caption]="utilService.convert1('sales.remark', '비고', 'Note')"></dxi-column>
+
+        <dxi-column dataField="createdby" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createddatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]="false"></dxi-column>
+        <dxi-column dataField="modifiedby" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifieddatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]="false"></dxi-column>
+        <dxo-summary>
+          <dxi-total-item column="out_qty" summaryType="sum" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item column="rtn_ord_qty" summaryType="sum" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+        </dxo-summary>
+      </dx-data-grid>
+    </dxi-item>
+
+    <!--    &lt;!&ndash; 두번째 그리드 &ndash;&gt;-->
+    <!--    <dxi-item [title]="utilService.convert1('sales.rtn_ord_list', '회수요청 리스트', 'Return Order List')">-->
+    <!--      <dx-data-grid-->
+    <!--        #subGrid-->
+    <!--        [dataSource]="dsSubGrid"-->
+    <!--        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"-->
+    <!--        (onRowDblClick)="rowDblClick($event)"-->
+    <!--        [allowColumnResizing]="true"-->
+    <!--        [columnAutoWidth]="true"-->
+    <!--        [focusedRowEnabled]="true"-->
+    <!--        (onFocusedCellChanged)="onFocusedCellChanging($event, this.subGrid)"-->
+    <!--        [showRowLines]="true"-->
+    <!--        [rowAlternationEnabled]="true"-->
+    <!--        columnResizingMode=nextColumn-->
+    <!--      >-->
+    <!--        <dxo-editing mode="batch"></dxo-editing>-->
+    <!--        <dxo-selection mode="single">-->
+    <!--        </dxo-selection>    &lt;!&ndash; single, multiple &ndash;&gt;-->
+    <!--        <dxo-load-panel [enabled]="true"></dxo-load-panel>-->
+    <!--        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>-->
+    <!--        <dxo-export [enabled]="true"></dxo-export>-->
+    <!--        <dxo-search-panel-->
+    <!--          [visible]="true"-->
+    <!--          [width]="240"-->
+    <!--          [placeholder]="''"></dxo-search-panel>-->
+    <!--        &lt;!&ndash;<dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>-->
+    <!--        <dxo-pager-->
+    <!--          [visible]="true"-->
+    <!--          [allowedPageSizes]=gridUtil.getAllowedPageSize()-->
+    <!--          [displayMode]="'full'"-->
+    <!--          [showPageSizeSelector]="true"-->
+    <!--          [showInfo]="true"-->
+    <!--          [showNavigationButtons]="true"-->
+    <!--        >-->
+    <!--        </dxo-pager>&ndash;&gt;-->
+    <!--        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateSub"-->
+    <!--                           [customSave]="saveStateSub"></dxo-state-storing>-->
+    <!--        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"-->
+    <!--                    alignment="center"></dxi-column>-->
+    <!--        <div *dxTemplate="let data of 'NoTemplate'">-->
+    <!--          {{ data.rowIndex + 1}}-->
+    <!--        </div>-->
+    <!--        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"-->
+    <!--                    [showInColumnChooser]="false"-->
+    <!--                    [allowEditing]="false"></dxi-column>-->
+    <!--        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"-->
+    <!--                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>-->
+    <!--        <dxi-column dataField="rtn_ord_no"-->
+    <!--                    [caption]="utilService.convert1('sales.rtn_ord_no', '회수요청번호', 'Return Order No')"-->
+    <!--                    alignment="center"></dxi-column>-->
+    <!--        <dxi-column dataField="rtn_ord_dt" dataType="date"-->
+    <!--                    editorType="dxDateBox" format="yyyy-MM-dd"-->
+    <!--                    [caption]="utilService.convert1('sales.rtn_ord_dt', '회수요청일자', 'Return Order Date')"-->
+    <!--                    alignment="center"-->
+    <!--                    [editorOptions]="{useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}"></dxi-column>-->
+    <!--        <dxi-column dataField="sa_wh_cd"-->
+    <!--                    [caption]="utilService.convert1('sales.rtn_wh_cd', '회수창고', 'Return Warehouse')"></dxi-column>-->
+    <!--        <dxi-column dataField="sa_wh_nm"-->
+    <!--                    [caption]="utilService.convert1('sales.rtn_wh_nm', '회수창고명', 'Return Warehouse Name')">-->
+    <!--          &lt;!&ndash;<dxo-lookup [dataSource]="dsGridWhCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>&ndash;&gt;-->
+    <!--        </dxi-column>-->
+    <!--        <dxi-column dataField="rtn_ptrn_cd"-->
+    <!--                    [caption]="utilService.convert1('sales.rtn_ptrn_cd', '회수파트너사', 'Return Partner')"></dxi-column>-->
+    <!--        <dxi-column dataField="rtn_ptrn_nm"-->
+    <!--                    [caption]="utilService.convert1('sales.rtn_ptrn_nm', '회수파트너사명', 'Return Partner Name')">-->
+    <!--          &lt;!&ndash;<dxo-lookup [dataSource]="dsPtrnCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>&ndash;&gt;-->
+    <!--        </dxi-column>-->
+    <!--        <dxi-column dataField="wrk_stat" [caption]="utilService.convert1('sales.wrk_stat', '작업상태', 'Work Status')"-->
+    <!--                    [calculateCellValue]="wrkStatNm" alignment="center"></dxi-column>-->
+    <!--        <dxi-column dataField="sku" [caption]="utilService.convert1('sales.sku', 'SKU', 'SKU')"-->
+    <!--                    format="#,##0"></dxi-column>-->
+    <!--        <dxi-column dataField="rtn_ord_qty"-->
+    <!--                    [caption]="utilService.convert1('sales.instruction_qty', '지시수량', 'Instruction Qty')"-->
+    <!--                    format="#,##0.####"></dxi-column>-->
+
+    <!--        <dxi-column dataField="rtn_sche_dt" dataType="date"-->
+    <!--                    editorType="dxDateBox" format="yyyy-MM-dd"-->
+    <!--                    [caption]="utilService.convert1('sales.rtn_sche_dt', '회수예정일자', 'Expected Collection Date')"-->
+    <!--                    alignment="center"-->
+    <!--                    [editorOptions]="{useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}"></dxi-column>-->
+    <!--        <dxi-column dataField="remark" [caption]="utilService.convert1('sales.remark', '비고', 'Note')"></dxi-column>-->
+
+    <!--        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"-->
+    <!--                    [allowEditing]="false" [visible]="false">-->
+    <!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+    <!--        </dxi-column>-->
+    <!--        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"-->
+    <!--                    [allowEditing]="false" [visible]="false"></dxi-column>-->
+    <!--        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"-->
+    <!--                    [allowEditing]="false" [visible]="false">-->
+    <!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+    <!--        </dxi-column>-->
+    <!--        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"-->
+    <!--                    [allowEditing]="false" [visible]="false"></dxi-column>-->
+    <!--        <dxo-summary>-->
+    <!--          <dxi-total-item column="rtn_ord_qty" summaryType="sum" displayFormat="{0}"-->
+    <!--                          valueFormat="#,##0.####"></dxi-total-item>-->
+    <!--        </dxo-summary>-->
+    <!--      </dx-data-grid>-->
+    <!--    </dxi-item>-->
+
+  </dx-accordion>
+</div>
+
+
+<!-- Grid popup-->
+<dx-popup
+  #popup
+  [(title)]="popupModeNm"
+  [closeOnOutsideClick]="false"
+  [dragEnabled]="true"
+  [(visible)]="popupVisible"
+  [height]="770"
+  (onShown)="popupShown($event)"
+>
+  <dxi-toolbar-item
+    #deleteBtn
+    widget="dxButton"
+    location="before"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_del'),
+      stylingMode: 'Contained',
+      type: 'danger',
+      onClick: popupDeleteClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    #saveBtn
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_save'),
+      type: 'success',
+      onClick: popupSaveClick
+    }"></dxi-toolbar-item>
+  <dxi-toolbar-item
+    widget="dxButton"
+    location="after"
+    toolbar="bottom"
+    [options]="{
+      text: utilService.convert('com_btn_close'),
+      stylingMode: 'outlined',
+      type: 'normal',
+      onClick: popupCancelClick
+    }"></dxi-toolbar-item>
+
+  <div *dxTemplate="let data of 'content'">
+    <dx-form #popupForm
+             [(formData)]="popupFormData"
+             labelLocation="left"
+             [showColonAfterLabel]="true"
+             [colCountByScreen]="{
+                  lg:3, md: 3, sm:1, xs:1
+               }"
+    >
+      <!-- Master -->
+      <dxi-item itemType="group"
+                [caption]="utilService.convert1('sales.rtn_ord_reg', '회수요청등록', 'Return Order Reg')"
+                [colCount]="3"
+                [colSpan]="3">
+        <!-- 1 Line -->
+        <dxi-item dataField="rtn_ord_no"
+                  [label]="{text: utilService.convert1('sales.rtn_ord_no', '회수요청번호', 'Return Order No')}"
+        ></dxi-item>
+        <dxi-item dataField="rtn_ord_dt"
+                  editorType="dxDateBox"
+                  [label]="{text: utilService.convert1('sales.rtn_ord_dt', '회수요청일자', 'Return Order Date')}"
+                  [editorOptions]="{useMaskBehavior:'true',
+                                    displayFormat:'yyyy-MM-dd',
+                                    dateSerializationFormat: 'yyyy-MM-dd'
+                  }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required' ,utilService.convert('sales.rtn_ord_dt'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="impt_cd" [label]="{text: utilService.convert1('sales.impt_cd', '수입사', 'Importer')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsImptCd,
+                                      displayExpr: 'displayimptcd',
+                                      valueExpr: 'impt_cd',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText'),
+                                       onValueChanged: onSelectionImptCd
+                  }">
+        </dxi-item>
+
+        <dxi-item dataField="expt_cd" [label]="{text: utilService.convert1('sales.expt_cd', '수출사', 'Exporter')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsExptCd,
+                                      displayExpr: 'display',
+                                      valueExpr: 'cd',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText'),
+                                      onValueChanged: onSelectionExptCd
+                  }">
+        </dxi-item>
+<!--        <dxi-item dataField="cust_cont" [label]="{text: utilService.convert1('sales.cont_no', '계약번호', 'Contract No')}"-->
+<!--                  editorType="dxSelectBox"-->
+<!--                  [editorOptions]="{-->
+<!--                                      items: dsContNo,-->
+<!--                                      displayExpr: 'display',-->
+<!--                                      valueExpr: 'cont_no',-->
+<!--                                      searchMode:'contains',-->
+<!--                                      searchEnabled: true,-->
+<!--                                      showClearButton: true,-->
+<!--                                      openOnFieldClick: false,-->
+<!--                                      minSearchLength: 0,-->
+<!--                                      placeholder: '',-->
+<!--                                      noDataText: utilService.convert('com_txt_noDataText'),-->
+<!--                                      onValueChanged: onSelectionChangedContNo-->
+<!--                                      }"-->
+<!--        ></dxi-item>-->
+<!--        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>-->
+
+        <dxi-item dataField="rtn_ptrn_cd"
+                  [label]="{text: utilService.convert1('sales.rtn_ptrn_cd', '회수파트너사', 'Return Partner')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsRtnPtrnCd,
+                                      displayExpr: 'display',
+                                      valueExpr: 'cd',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText'),
+                                      onValueChanged: onSelectionChangedRtnPtrnCd
+                  }">
+        </dxi-item>
+
+        <dxi-item dataField="sa_wh_cd"
+                  [label]="{text: utilService.convert1('sales.rtn_wh_cd', '회수창고', 'Return Warehouse')}"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{  items: dsSaWh,
+                                      displayExpr: 'display',
+                                      valueExpr: 'cd',
+                                      searchMode:'contains',
+                                      searchEnabled: true,
+                                      showClearButton: true,
+                                      openOnFieldClick: false,
+                                      minSearchLength: 0,
+                                      placeholder: '',
+                                      noDataText: utilService.convert('com_txt_noDataText'),
+                                      onValueChanged: onSelectionChangedWhCd
+                  }">
+          <dxi-validation-rule type="required"
+                               [message]="utilService.convert('com_valid_required', utilService.convert('sales.rtn_wh_cd'))"></dxi-validation-rule>
+        </dxi-item>
+        <dxi-item dataField="countrycd" [label]="{text: utilService.convert1('mm_company_countrycd', '국가')}"
+                  disabled="true"
+                  editorType="dxSelectBox"
+                  [editorOptions]="{ items: dsCountry,
+						  					 displayExpr: 'display',
+						  					 valueExpr: 'code',
+						  					 searchMode:'contains',
+						  					 searchEnabled: true,
+						  					 showClearButton: true,
+						  					 openOnFieldClick: false,
+						  					 minSearchLength: 0,
+						  					 placeholder: '',
+						  					 noDataText: utilService.convert('com_txt_noDataText')
+						  					 }">
+        </dxi-item>
+        <dxi-item dataField="zip_no" [label]="{text: utilService.convert1('우편번호', '우편번호')}" disabled="true"></dxi-item>
+        <dxi-item [colSpan]="2">
+              <span class="btngroup page-button-group">
+                <dx-button #address
+                           type="default"
+                           [text]="utilService.convert1('주소 검색', '주소 검색')"
+                           (onClick)="comfirmAddress()"
+                ></dx-button>
+              </span>
+        </dxi-item>
+
+        <dxi-item dataField="rtn_adr1"
+                  [label]="{text: utilService.convert1('mm_warehouse_address1', '주소1')}"
+                  [colSpan]="2"></dxi-item>
+
+        <!--        <dxi-item dataField="phone1" [label]="{text: utilService.convert1('logicalwhmoveout', '전화번호')}"-->
+        <!--                  disabled="true"></dxi-item>-->
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+
+        <dxi-item dataField="rtn_adr2" [label]="{text: utilService.convert1('mm_warehouse_address2', '주소2')}"
+                  [colSpan]="2" ></dxi-item>
+        <dxi-item itemType="empty" [colSpan]="1"></dxi-item>
+        <!--        <dxi-item dataField="wh_cd" [label]="{text: utilService.convert('sales.wh_cd')}"></dxi-item>-->
+        <!--        <dxi-item dataField="rtn_sche_dt"-->
+        <!--                  editorType="dxDateBox"-->
+        <!--                  [label]="{text: utilService.convert1('sales.rtn_sche_dt', '회수예정일자', 'Expected Collection Date')}"-->
+        <!--                  [editorOptions]="{useMaskBehavior:'true',-->
+        <!--                                    displayFormat:'yyyy-MM-dd',-->
+        <!--                                    dateSerializationFormat: 'yyyy-MM-dd'-->
+        <!--                  }">-->
+        <!--          <dxi-validation-rule type="required" [message]="utilService.convert('com_valid_required',utilService.convert('sales.rtn_sche_dt'))"></dxi-validation-rule>-->
+        <!--        </dxi-item>-->
+
+        <!--        &lt;!&ndash; 2 line &ndash;&gt;-->
+        <!--        <dxi-item dataField="out_ord_no" [label]="{text: utilService.convert1('sales.out_ord_no', '출고지시번호', 'Out Order No')}" [disabled]="true"></dxi-item>-->
+        <!--        <dxi-item dataField="out_dt"-->
+        <!--                  editorType="dxDateBox"-->
+        <!--                  [label]="{text: utilService.convert1('sales.out_dt', '출고일자', 'Out Date')}"  [disabled]="true"-->
+        <!--                  [editorOptions]="{useMaskBehavior:'true',-->
+        <!--                                    displayFormat:'yyyy-MM-dd',-->
+        <!--                                    dateSerializationFormat: 'yyyy-MM-dd'-->
+        <!--                  }">-->
+        <!--        </dxi-item>-->
+
+        <!--        <dxi-item dataField="ptrn_cd" [label]="{text: utilService.convert1('sales.ptrn_cd', '파트너사', 'Partner')}"  editorType="dxSelectBox" [disabled]="true"-->
+        <!--                  [editorOptions]="{  items: dsPtrnCd,-->
+        <!--                                      displayExpr: 'display',-->
+        <!--                                      valueExpr: 'cd',-->
+        <!--                                      searchMode:'contains',-->
+        <!--                                      searchEnabled: true,-->
+        <!--                                      openOnFieldClick: false,-->
+        <!--                                      minSearchLength: 0,-->
+        <!--                                      placeholder: '',-->
+        <!--                                      noDataText: utilService.convert('com_txt_noDataText')-->
+        <!--                  }">-->
+        <!--        </dxi-item>-->
+
+        <!--        <dxi-item dataField="rent_st_dt"-->
+        <!--          editorType="dxDateBox" [colSpan]="1" [label]="{text: utilService.convert1('sales.rent_st_dt', '렌탈시작일자', 'Rental Start Date')}" [disabled]="true"-->
+        <!--                          [editorOptions]="{useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">-->
+        <!--        </dxi-item>-->
+        <!--        <dxi-item dataField="rent_end_dt"-->
+        <!--          editorType="dxDateBox" [colSpan]="1" [label]="{text: utilService.convert1('sales.rent_end_dt', '렌탈종료일자', 'Rental End Date')}" [disabled]="true"-->
+        <!--                          [editorOptions]="{useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}">-->
+        <!--        </dxi-item>-->
+<!--        <dxi-item editorType="empty" [colSpan]="1"></dxi-item>-->
+        <dxi-item dataField="remark" [colSpan]="3" editorType="dxTextArea"
+                  [label]="{text: utilService.convert('com_text_remarks')}"
+                  [editorOptions]="{placeholder: utilService.convert('com_txt_noContent')}">
+        </dxi-item>
+      </dxi-item>
+
+      <!--품목 목록 그리드-->
+      <dxi-item itemType="group"
+                [caption]="utilService.convert1('sales.item_list', '품목 리스트', 'Item List')"
+                [colCount]="3"
+                [colSpan]="3">
+        <dx-data-grid
+          #popupGrid
+          [dataSource]="dsItemGrid"
+          [(selectedRowKeys)]="selectedRows"
+          (onFocusedCellChanged)="onFocusedCellChanging($event, this.popupGrid)"
+          (onToolbarPreparing)="gridUtil.onToolbarPreparingWithComBtn($event, this, this.addClick, this.deleteClick)"
+          [showRowLines]="true"
+          [rowAlternationEnabled]="true"
+          [columnAutoWidth]="true"
+          [allowColumnResizing]="true"
+          [focusedRowEnabled]="true"
+          (onInitNewRow)="onInitNewRow($event)"
+
+          columnResizingMode=nextColumn
+        >
+          <dxo-editing mode="batch"
+                       [allowUpdating]="allowEditing"
+                       [(changes)]="changes"
+                       [selectTextOnEditStart]="true"
+                       [newRowPosition]="'last'"
+          ></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true"></dxo-export>
+          <dxo-search-panel
+            [visible]="true"
+            [width]="240"
+            [placeholder]="''"></dxo-search-panel>
+          <!--<dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+          <dxo-pager
+            [visible]="true"
+            [allowedPageSizes]=gridUtil.getAllowedPageSize()
+            [displayMode]="'full'"
+            [showPageSizeSelector]="true"
+            [showInfo]="true"
+            [showNavigationButtons]="true"
+          >
+          </dxo-pager>-->
+          <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStatePopup"
+                             [customSave]="saveStatePopup"></dxo-state-storing>
+          <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                      [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+          <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                      [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+          <dxi-column name="No" [caption]="utilService.convert('com_text_no')"
+                      cellTemplate="NoTemplate" alignment="center"></dxi-column>
+          <div *dxTemplate="let data of 'NoTemplate'">
+            {{ data.rowIndex + 1}}
+          </div>
+          <dxi-column dataField="item_cd" cssClass="grid-cell-required" width="300"
+                      [caption]="utilService.convert1('sales.item', '품목', 'Item')"
+                      [setCellValue]="setItemCdValue">
+            <dxo-lookup [dataSource]="dsItemCd" displayExpr="display" valueExpr="cd"></dxo-lookup>
+            <dxi-validation-rule type="required"></dxi-validation-rule>
+          </dxi-column>
+<!--          <dxi-column dataField="curt_qty"-->
+<!--                      [caption]="utilService.convert1('inv_moveLocation_ableQty', '가용재고수량')"-->
+<!--                      format='#,##0.####' alignment="right" [allowEditing]="false" dataType="number">-->
+<!--          </dxi-column>-->
+<!--          <dxi-column dataField="item_nm"-->
+<!--                      [caption]="utilService.convert1('sales.item_nm', '품목명', 'Item Name')"-->
+<!--                      [allowEditing]="false">-->
+<!--            &lt;!&ndash;<dxo-lookup [dataSource]="dsItemCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>&ndash;&gt;-->
+<!--          </dxi-column>-->
+          <!--          <dxi-column dataField="item_nm"-->
+          <!--                      [caption]="utilService.convert1('sales.item_nm', '품목명', 'Item Name')"-->
+          <!--                      [allowEditing]="false">-->
+          <!--            &lt;!&ndash;<dxo-lookup [dataSource]="dsItemCd" displayExpr="nm" valueExpr="cd"></dxo-lookup>&ndash;&gt;-->
+          <!--          </dxi-column>-->
+          <!--          <dxi-column dataField="out_qty"-->
+          <!--                      [caption]="utilService.convert1('sales.out_qty', '출고수량', 'Out Qty')"-->
+          <!--                      dataType="number" format="#,##0.####"-->
+          <!--                      [editorOptions]="{format:'#,##0.####', step:0}">-->
+          <!--          </dxi-column>-->
+          <!--          <dxi-column dataField="old_rtn_ord_qty"-->
+          <!--                      [caption]="utilService.convert1('sales.prereg_ord_qty', '기등록지시수량', 'PreReg Order Qty')"-->
+          <!--                      [allowEditing]="false"-->
+          <!--                      dataType="number" format="#,##0.####"-->
+          <!--                      [editorOptions]="{format:'#,##0.####', step:0}">-->
+          <!--          </dxi-column>-->
+          <dxi-column dataField="rtn_ord_qty"
+                      [caption]="utilService.convert1('sales.rtn_ord_qty', '요청수량', 'Instruction Qty')"
+                      cssClass="grid-cell-required"
+                      dataType="number" format="#,##0.####"
+                      [editorOptions]="{format:'#,##0.####', step:0}">
+            <dxi-validation-rule type="required"></dxi-validation-rule>
+          </dxi-column>
+          <dxi-column dataField="" width="700"></dxi-column>
+
+          <dxo-summary [recalculateWhileEditing]="true">
+            <dxi-total-item column="out_qty" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="old_rtn_ord_qty" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+            <dxi-total-item column="rtn_ord_qty" summaryType="sum" displayFormat="{0}"
+                            valueFormat="#,##0.####"></dxi-total-item>
+          </dxo-summary>
+        </dx-data-grid>
+      </dxi-item>
+    </dx-form>
+  </div>
+</dx-popup>

@@ -1,0 +1,213 @@
+<!-- 마감 > 파트너 상세 마감 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/sacl/sacl080')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+  </span>
+</div>
+
+<!-- TAB1-->
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [height]="63"
+               [colCount]="3"
+               (onEditorEnterKey)="onSearch()"
+               [colCountByScreen]="{ lg:6, md: 6, sm:3, xs:1 }"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+
+          <dxi-item itemType="group"
+                    [label]="{text: utilService.convert1('sales.settlementdate', '정산일자', 'Settlement Date')}" [colSpan]="2">
+            <dx-date-box #fromDate
+                         name="fromDate"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM-dd"
+                         dateSerializationFormat="yyyy-MM-dd"
+                         [calendarOptions]="{useMaskBehavior:'true'}"
+                         width="45%"
+                         [elementAttr]="{ style: 'float:left' }"
+            >
+            </dx-date-box>
+            <div style="float:left;margin:5px">~</div>
+            <dx-date-box #toDate
+                         name="toDate"
+                         type="date"
+                         pickerType="calendar"
+                         displayFormat="yyyy-MM-dd"
+                         dateSerializationFormat="yyyy-MM-dd"
+                         [calendarOptions]="{useMaskBehavior:'true'}"
+                         width="45%"
+                         [elementAttr]="{ style: 'float:left' }"
+            >
+            </dx-date-box>
+          </dxi-item>
+
+          <dxi-item dataField="ptrn_cd" [label]="{text: utilService.convert('sales.ptrn_cd')}" editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsPtrnCd,
+                                        displayExpr: 'display',
+                                        valueExpr: 'cd',
+                                        searchMode:'contains',
+                                        searchEnabled: true,
+                                        showClearButton: true,
+                                        openOnFieldClick: false,
+                                        minSearchLength: 0,
+                                        placeholder: '',
+                                        noDataText: utilService.convert('com_txt_noDataText')
+                    }">
+          </dxi-item>
+
+          <dxi-item dataField="item_cd" [label]="{text: utilService.convert('sales.item_cd')}" editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsItemCd,
+                                        displayExpr: 'display',
+                                        valueExpr: 'cd',
+                                        searchMode:'contains',
+                                        searchEnabled: true,
+                                        showClearButton: true,
+                                        openOnFieldClick: false,
+                                        minSearchLength: 0,
+                                        placeholder: '',
+                                        noDataText: utilService.convert('com_txt_noDataText')
+                    }">
+          </dxi-item>
+
+          <dxi-item dataField="ord_gb" [label]="{text: '정산유형'}" editorType="dxSelectBox" [colSpan]="2"
+                    [editorOptions]="{  items: dsCalcGb,
+                                        displayExpr: 'codeName',
+                                        valueExpr: 'code',
+                                        searchMode:'contains',
+                                        searchEnabled: true,
+                                        showClearButton: true,
+                                        openOnFieldClick: false,
+                                        minSearchLength: 0,
+                                        placeholder: '',
+                                        noDataText: utilService.convert('com_txt_noDataText')
+                    }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()"
+        ></dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+    <!--    <div class="foldable-btn">-->
+    <!--      <dx-button #foldableBtn type="default"-->
+    <!--                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>-->
+    <!--    </div>-->
+  </div>
+
+  <!--Grid-->
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('sacl080.mainGrid.title', '파트너 마감 리스트')">
+      <dx-data-grid
+        #mainGrid
+        [dataSource]="mainDataSource"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [allowColumnResizing]="true"
+        [columnAutoWidth]="true"
+        [focusedRowEnabled]="true"
+        (onFocusedCellChanged)="onFocusedCellChanging($event, this.mainGrid)"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [allowColumnReordering]="true"
+        (onExporting)="gridUtil.onPageExportXlsx($event)"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"
+                     [allowUpdating]="false"
+                     [selectTextOnEditStart]="true"
+        ></dxo-editing>
+        <dxo-selection mode="single" selectAllMode="allPages"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false"
+                    [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="cal_date" [caption]="utilService.convert1('sales.settlementdate', '정산일자', 'Settlement Date')"
+                    dataType="date" format="yyyy-MM-dd" alignment="center"></dxi-column>
+
+        <dxi-column dataField="cust_cd" [caption]="utilService.convert1('sales.ptrn_cd', '파트너사', 'Partner')" alignment="center">
+        </dxi-column>
+
+        <dxi-column dataField="cust_nm" [caption]="utilService.convert1('sales.ptrn_nm', '파트너사명', 'Partner Name')" alignment="left">
+        </dxi-column>
+
+        <dxi-column dataField="item_cd" [caption]="utilService.convert('sales.item_cd')"
+                    alignment="left">
+          <dxo-lookup [dataSource]=dsItemCd displayExpr="display" valueExpr="cd"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="ord_gb" [caption]="utilService.convert1('sales.ptrn_cls_gb', '정산유형', '정산유형')" alignment="center">
+          <dxo-lookup [dataSource]=dsCalcGb displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+
+        <dxi-column dataField="ord_type" [caption]="utilService.convert1('sales.ptrn_cls_type', '구분', '구분')" alignment="center">
+          <dxo-lookup [dataSource]=dsCalcType displayExpr="codeName" valueExpr="code"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="ord_cost" [caption]="utilService.convert1('sales.ptrn_cls_cost', '항목값', '항목값')" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="ord_qty" [caption]="utilService.convert1('sales.ptrn_cls_qty', '실적', '실적')" format="#,##0.####"></dxi-column>
+        <dxi-column dataField="ord_amt" [caption]="utilService.convert1('sales.ptrn_cls_amt', '계산금액', '계산금액')" format="#,##0.####"></dxi-column>
+
+        <dxi-column dataField="ord_no" [caption]="utilService.convert1('sales.slip_no', '전표번호', 'Slip Number')"
+                    alignment="center"></dxi-column>
+        <dxi-column dataField="ord_seq" [caption]="utilService.convert1('sales.slip_seq_no', '전표상세번호', 'Slip Seq Number')"
+                    alignment="right"></dxi-column>
+
+        <dxo-summary>
+          <dxi-total-item column="ord_qty" summaryType="sum" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+          <dxi-total-item column="ord_amt" summaryType="sum" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+        </dxo-summary>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>
+

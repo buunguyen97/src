@@ -1,0 +1,188 @@
+<!-- 영업 > 수금 > 일일입금총괄현황 saco050 -->
+
+<div class="contents-header">
+  <!-- Header Title START -->
+  <h2 class="content-block page-title">{{utilService.convert('/saco/saco050')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <!-- Header Title END -->
+  <!-- 버튼 그룹 START (조회 버튼 제외 - 조회버튼은 조회영역에 삽입) -->
+  <span class="btngroup page-button-group">
+  </span>
+  <!-- 버튼 그룹 END -->
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [showColonAfterLabel]="false"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [height]="63"
+               [colCount]="3"
+               (onEditorEnterKey)="onSearch()"
+               [colCountByScreen]="{lg:6, md: 6, sm:3, xs:1}"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }">
+          </dxi-item>
+
+          <dxi-item dataField="depoDate" [colSpan]="2"
+            editorType="dxDateBox"
+            [label]="{text: utilService.convert1('sales.depo_dt', '입금일자', 'Depo Date')}"
+            [editorOptions]="{ useMaskBehavior:'true',
+                               displayFormat:'yyyy-MM-dd',
+                               dateSerializationFormat: 'yyyyMMdd' }">
+          </dxi-item>
+        </dxi-item>
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_reset')"
+                   class="reset-btn"
+                   (onClick)="onReset()"
+        ></dx-button>
+        <dx-button icon="check"
+                   type="default"
+                   [text]="utilService.convert('com_btn_search')"
+                   class="search-btn"
+                   (onClick)="onSearch()"
+        ></dx-button>
+      </div>
+    </div>
+  </div>
+
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+  <dxi-item [title]="utilService.convert('sales.status')">
+      <dx-data-grid #mainGrid
+        [dataSource]="dsMainGrid"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [columnAutoWidth]="true"
+        [allowColumnResizing]="true"
+        [focusedRowEnabled]="true"
+        columnResizingMode=nextColumn
+        [height]="90"
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true"></dxo-export>
+
+        <dxo-search-panel
+                  [visible]="true"
+                  [width]="100"
+                  [placeholder]="''">
+        </dxo-search-panel>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateMain"
+                           [customSave]="saveStateMain"></dxo-state-storing>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="sale_depo_amt" [caption]="utilService.convert('sales.sale')" format="#,##0.##"></dxi-column>
+        <dxi-column dataField="rent_depo_amt" [caption]="utilService.convert('sales.rent')" format="#,##0.##"></dxi-column>
+        <dxi-column dataField="depo_amt" [caption]="utilService.convert('sales.sum')" format="#,##0.##"></dxi-column>
+<!--        <dxi-column dataField="createdBy" [caption]="utilService.convert('com_text_createdBy')"-->
+<!--                    [allowEditing]="false" [visible]="false">-->
+<!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+<!--        </dxi-column>-->
+<!--        <dxi-column dataField="createdDatetime" [caption]="utilService.convert('com_text_createdDatetime')"-->
+<!--                    [allowEditing]="false" [visible]="false"></dxi-column>-->
+<!--        <dxi-column dataField="modifiedBy" [caption]="utilService.convert('com_text_modifiedBy')"-->
+<!--                    [allowEditing]="false" [visible]="false">-->
+<!--          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>-->
+<!--        </dxi-column>-->
+<!--        <dxi-column dataField="modifiedDatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"-->
+<!--                    [allowEditing]="false" [visible]="false"></dxi-column>-->
+      </dx-data-grid>
+    </dxi-item>
+
+    <dxi-item [title]="utilService.convert('sales.dep_stat')">
+      <dx-data-grid
+        #subGrid
+        [dataSource]="dsSubGrid"
+        (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+        [showRowLines]="true"
+        [rowAlternationEnabled]="true"
+        [columnAutoWidth]="true"
+        [allowColumnResizing]="true"
+        [focusedRowEnabled]="true"
+        columnResizingMode=nextColumn
+      >
+        <dxo-editing mode="batch"></dxo-editing>
+        <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+        <dxo-load-panel [enabled]="true"></dxo-load-panel>
+        <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+        <dxo-export [enabled]="true"></dxo-export>
+
+        <dxo-filter-row [visible]="true"></dxo-filter-row>
+        <dxo-group-panel [visible]="true"></dxo-group-panel>
+        <dxo-grouping [autoExpandAll]="true"></dxo-grouping>
+
+        <dxo-search-panel
+          [visible]="true"
+          [width]="240"
+          [placeholder]="''"></dxo-search-panel>
+        <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+        <dxo-pager
+          [visible]="true"
+          [allowedPageSizes]=gridUtil.getAllowedPageSize()
+          [displayMode]="'full'"
+          [showPageSizeSelector]="true"
+          [showInfo]="true"
+          [showNavigationButtons]="true"
+        >
+        </dxo-pager>
+        <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadStateSub"
+                           [customSave]="saveStateSub"></dxo-state-storing>
+        <dxi-column name="No" [caption]="utilService.convert('com_text_no')" cellTemplate="NoTemplate"
+                    alignment="center"></dxi-column>
+        <div *dxTemplate="let data of 'NoTemplate'">
+          {{ data.rowIndex + 1}}
+        </div>
+        <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                    [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+        <dxi-column dataField="expt_cd" [caption]="utilService.convert('sales.expt_cd')" alignment="center"></dxi-column>
+        <dxi-column dataField="expt_nm" [caption]="utilService.convert('sales.expt_nm')"></dxi-column>
+        <dxi-column dataField="claim_no" [caption]="utilService.convert('sales.claim_no')" alignment="center"></dxi-column>
+        <dxi-column dataField="cls_mon" dataType="date"
+                    editorType="dxDateBox" format="yyyyMM" [caption]="utilService.convert('sales.claim_dt')" alignment="center" [calculateCellValue]="clsMon"
+                    [editorOptions]="{useMaskBehavior:'true', displayFormat:'yyyyMM', dateSerializationFormat: 'yyyyMM'}"></dxi-column>
+        <dxi-column dataField="ord_gb" [caption]="utilService.convert('sales.ord_gb')" alignment="center">
+          <dxo-lookup [dataSource]="dsOrdGb" displayExpr="nm" valueExpr="cd"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="depo_dt" dataType="date"
+                    editorType="dxDateBox" format="yyyy-MM-dd" [caption]="utilService.convert('sales.depo_dt')" alignment="center"
+                    [editorOptions]="{useMaskBehavior:'true', displayFormat:'yyyy-MM-dd', dateSerializationFormat: 'yyyy-MM-dd'}"></dxi-column>
+        <dxi-column dataField="depo_no" [caption]="utilService.convert('sales.depo_no')" alignment="center"></dxi-column>
+        <dxi-column dataField="coll_expt_nm" [caption]="utilService.convert('sales.coll_expt_cd')"></dxi-column>
+        <dxi-column dataField="depo_amt" [caption]="utilService.convert('sales.depo_amt')" format="#,##0.##"></dxi-column>
+        <dxi-column dataField="createdby" [caption]="utilService.convert('com_text_createdBy')"
+                    [allowEditing]="false" [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="createddatetime" [caption]="utilService.convert('com_text_createdDatetime')"
+                    [allowEditing]="false" [visible]="false"></dxi-column>
+        <dxi-column dataField="modifiedby" [caption]="utilService.convert('com_text_modifiedBy')"
+                    [allowEditing]="false" [visible]="false">
+          <dxo-lookup [dataSource]=dsUser displayExpr="name" valueExpr="uid"></dxo-lookup>
+        </dxi-column>
+        <dxi-column dataField="modifieddatetime" [caption]="utilService.convert('com_text_modifiedDatetime')"
+                    [allowEditing]="false" [visible]="false">
+        </dxi-column>
+        <dxo-summary>
+          <dxi-total-item column="depo_amt" summaryType="sum" displayFormat="{0}"
+                          valueFormat="#,##0.####"></dxi-total-item>
+        </dxo-summary>
+      </dx-data-grid>
+    </dxi-item>
+  </dx-accordion>
+</div>

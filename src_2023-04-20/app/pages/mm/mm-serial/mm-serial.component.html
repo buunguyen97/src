@@ -1,0 +1,172 @@
+<!-- 공통 > 시리얼관리 -->
+
+<div class="contents-header">
+  <h2 class="content-block page-title">{{utilService.convert('/mm/mmSerial')}}</h2>
+  <span class="page-breadcrumb">{{utilService.getPagePath()}}</span>
+  <span class="btngroup page-button-group">
+
+      <dx-button icon="check"
+                 type="default"
+                 [text]="utilService.convert1('시리얼생성', '시리얼생성')"
+                 (onClick)="generateSerial()">
+      </dx-button>
+
+    </span>
+  <hr/>
+</div>
+
+<div class="contents-body">
+  <div class="search_foldable">
+    <div class="search-box">
+      <dx-form #mainForm
+               class="search-form-box"
+               [(formData)]="mainFormData"
+               [minColWidth]="300"
+               [colCount]="6"
+               [showColonAfterLabel]="false"
+               [colCountByScreen]="{
+                      lg:6, md: 6, sm:3, xs:3
+                  }"
+      >
+        <dxi-item itemType="group" [colCount]="6" [colSpan]="6">
+          <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                    [editorOptions]="{ value: G_TENANT }"></dxi-item>
+          <dxi-item dataField="serialKey" [colSpan]="2"
+                    [label]="{text: utilService.convert1('mmSerial.serialKey', '시리얼번호')}"></dxi-item>
+
+
+          <dxi-item itemType="group" [colSpan]="2" [colCount]="2"
+                    [label]="{text: utilService.convert1('mmSerial.rangeSerial', '시리얼범위')}"
+                    cssClass="fromtocalendar">
+            <dxi-item dataField="fromSerialKey" [label]="{visible: false}"></dxi-item>
+            <dxi-item dataField="toSerialKey" [label]="{text: '~'}"></dxi-item>
+          </dxi-item>
+
+          <dxi-item dataField="serial" [colSpan]="2"
+                    [label]="{text: utilService.convert1('mmSerial.serial', '시리얼')}"></dxi-item>
+        </dxi-item>
+
+      </dx-form>
+      <div class="search-btn-group">
+        <dx-button icon="check"
+                   type="default"
+                   class="search-btn"
+                   [focusStateEnabled]="false"
+                   [text]="utilService.convert('com_btn_search')"
+                   (onClick)="onSearch()">
+        </dx-button>
+      </div>
+    </div>
+    <div class="foldable-btn">
+      <dx-button #foldableBtn type="default"
+                 (onClick)="utilService.onFoldable(this.mainForm, this.foldableBtn)"></dx-button>
+    </div>
+  </div>
+
+  <dx-accordion #acrdn
+                [collapsible]="true"
+                [multiple]="true"
+                [animationDuration]="300">
+    <dxi-item [title]="utilService.convert1('실행조건','실행조건')">
+      <div class="detail-table">
+        <dx-form #execCondForm
+                 labelLocation="left"
+                 [(formData)]="execFormData"
+                 [minColWidth]="300"
+                 [colCount]="3"
+                 [colCountByScreen]="{lg:3, md: 3, sm:1, xs:1}"
+        >
+          <dxi-item itemType="group" [colCount]="3" [colSpan]="3">
+            <dxi-item dataField="serialKey"
+                      [label]="{text: utilService.convert1('mmSerial.serialKey', '시리얼번호')}">
+              <dxi-validation-rule type="required"
+                                   [message]="utilService.convert('com_valid_required', utilService.convert('mmSerial.serialKey'))"></dxi-validation-rule>
+            </dxi-item>
+            <dxi-item dataField="isLast"
+                      [label]="{text: '마지막번호'}" editorType="dxCheckBox"
+                      [editorOptions]="{
+                      onValueChanged: onSelectCheckBox
+                      }">
+            </dxi-item>
+            <dxi-item itemType="empty"></dxi-item>
+
+            <dxi-item dataField="requestQty"
+                      [label]="{text: utilService.convert1('mmSerial.requestQty', '요청수량')}">
+              <dxi-validation-rule type="required"
+                                   [message]="utilService.convert('com_valid_required', utilService.convert('mmSerial.requestQty'))"></dxi-validation-rule>
+            </dxi-item>
+
+            <dxi-item dataField="tenant" [label]="{text: 'Tenant'}" [visible]="false"
+                      [editorOptions]="{ value: G_TENANT }"></dxi-item>
+            <dxi-item dataField="manufacturer"
+                      [label]="{text: utilService.convert1('mmSerial.manufacturer', '제조사')}">
+            </dxi-item>
+          </dxi-item>
+
+        </dx-form>
+      </div>
+    </dxi-item>
+    <dxi-item [title]="utilService.convert1('mmSerial.serialList', '시리얼목록')">
+      <div class="flex-container">
+        <dx-data-grid
+          #mainGrid
+          [dataSource]="dataSource"
+          (onToolbarPreparing)="gridUtil.onToolbarPreparing($event)"
+          [allowColumnResizing]="true"
+          [columnAutoWidth]="true"
+          [focusedRowEnabled]="true"
+          (onFocusedRowChanged)="onFocusedCellChanging($event, this.mainGrid)"
+          (onFocusedCellChanged)="onFocusedCellChanging($event, this.mainGrid)"
+          [showRowLines]="true"
+          [rowAlternationEnabled]="true"
+          [allowColumnReordering]="true"
+          (onExporting)="gridUtil.onPageExportXlsx($event)"
+          columnResizingMode=nextColumn
+        >
+          <dxo-editing mode="batch"></dxo-editing>
+          <dxo-selection mode="single"></dxo-selection>    <!-- single, multiple -->
+          <dxo-load-panel [enabled]="true"></dxo-load-panel>
+          <dxo-column-chooser [enabled]="true"></dxo-column-chooser>
+          <dxo-export [enabled]="true" [allowExportSelectedData]="true"></dxo-export>
+          <dxo-search-panel
+            [visible]="true"
+            [width]="240"
+            [placeholder]="''"></dxo-search-panel>
+          <dxo-paging [enabled]="true" [pageSize]=gridUtil.getPageSize()></dxo-paging>
+          <dxo-pager
+            [visible]="true"
+            [allowedPageSizes]=pageSizeFilter
+            [displayMode]="'full'"
+            [showPageSizeSelector]="true"
+            [showInfo]="true"
+            [showNavigationButtons]="true">
+          </dxo-pager>
+          <dxo-state-storing [enabled]="true" type="custom" [customLoad]="loadState1"
+                             [customSave]="saveState1"></dxo-state-storing>
+          <dxi-column dataField="uid" caption="UID" [visible]="false" [allowSearch]="false"
+                      [showInColumnChooser]="false" [allowEditing]="false"></dxi-column>
+          <dxi-column dataField="tenant" caption="tenant" [visible]="false" [allowSearch]="false"
+                      [showInColumnChooser]="false" [allowEditing]="false"
+                      [editorOptions]="{ value: G_TENANT }"></dxi-column>
+          <dxi-column dataField="serialKey" [caption]="utilService.convert1('mmSerial.serialKey', '시리얼번호')"
+                      dataType="number" alignment="left" width="200">
+          </dxi-column>
+          <dxi-column dataField="serialType" [caption]="utilService.convert1('mmSerial.serialType', '시리얼타입')"
+                      width="150">
+            <dxo-lookup [dataSource]=dsSerialType displayExpr="display" valueExpr=""></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="sts" [caption]="utilService.convert1('mmSerial.sts', '시리얼사용여부')" alignment="center"
+                      width="150">
+            <dxo-lookup [dataSource]=dsActFlg displayExpr="display" valueExpr=""></dxo-lookup>
+          </dxi-column>
+          <dxi-column dataField="serial"
+                      [caption]="utilService.convert1('mmSerial.serial', '시리얼')" width="300"></dxi-column>
+          <dxi-column dataField="manufacturer"
+                      [caption]="utilService.convert1('mmSerial.manufacturer', '제조사')" width="200"></dxi-column>
+          <dxi-column dataField="remarks" [caption]="utilService.convert('com_text_remarks')"></dxi-column>
+        </dx-data-grid>
+
+      </div>
+    </dxi-item>
+  </dx-accordion>
+</div>
